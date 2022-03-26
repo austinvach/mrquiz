@@ -1,2 +1,2 @@
 # Mr. Quiz - Electronic Learning Game
-Like the GeoSafari, but better :)
+Like the [GeoSafari](https://en.wikipedia.org/wiki/GeoSafari), but better :)
