@@ -11,10 +11,8 @@ String keyVal;
 String code;
 String batteryPercentageText;
 String currentScreen;
-// StaticJsonDocument<80> filter;
-DynamicJsonDocument filter(80);
-// StaticJsonDocument<1600> doc;
-DynamicJsonDocument doc(1600);
+StaticJsonDocument<80> filter;
+StaticJsonDocument<1600> doc;
 bool isPretendSleeping = false;
 bool isSleepEnabled = true;
 bool secondaryTextVisible = false;
@@ -107,13 +105,7 @@ void reset(){
 
 bool isCodeValid (){
   // Serial.println("isCodeValid()");
-  // StaticJsonDocument<80> filter;
-  // // DynamicJsonDocument filter(80);
-  // StaticJsonDocument<1600> doc;
-  // // DynamicJsonDocument doc(1600);
   filter[String(code)] = true;
-  // serializeJson(filter, Serial);
-  // Serial.println();
   
   // Deserialize the JSON document,
   DeserializationError error = deserializeJson(doc, codes, DeserializationOption::Filter(filter));
@@ -122,8 +114,6 @@ bool isCodeValid (){
     Serial.print(F("deserializeJson() failed: "));
     Serial.println(error.f_str());
   }
-  // serializeJson(doc, Serial);
-  // Serial.println();
 
   JsonArray qaPairs = doc[String(code)].as<JsonArray>();
 
@@ -313,8 +303,7 @@ void displayCodeEntryScreen(){
     setFooter("PRESS * TO RESET");
     tft.setCursor(0, primaryTextYPosition);
   }
-  if(code.length() <= 3) {
-    // tft.print(String(key));
+  if(code.length() <= 3){
     keyVal = String(key);
     code = code + key;
     setPrimaryText(code);
@@ -344,25 +333,29 @@ void setup(){
 }
 
 void loop(){
-  key = keypad.getKey();
+  if (keypad.getKeys()){
+    for (int i=0; i<LIST_MAX; i++){ // Scan the whole key list.
+      if (keypad.key[i].stateChanged && keypad.key[i].kstate == PRESSED){
+        key = keypad.key[i].kchar;
+        timeOfLastInteraction = millis();
+        if(isPretendSleeping == true){
+          isPretendSleeping = false;
+          displayStartScreen();
+        }
+        else if (key == '*'){
+          if(currentScreen != "startScreen"){
+            reset();
+            displayStartScreen();
+          }
+        }
+        else if (key == '#'){
+        }
+        else {
+          displayCodeEntryScreen();
+        }
+      }
+    }   
+  }
   maybeSleepDevice();
   updateBatteryStatus();
-  if (key != NO_KEY) {
-    timeOfLastInteraction = millis();
-    if(isPretendSleeping == true){
-      isPretendSleeping = false;
-      displayStartScreen();
-    }
-    else if (key == '*'){
-      if(currentScreen != "startScreen"){
-        reset();
-        displayStartScreen();
-      }
-    }
-    else if (key == '#'){
-    }
-    else {
-      displayCodeEntryScreen();
-    }
-  }
 }
