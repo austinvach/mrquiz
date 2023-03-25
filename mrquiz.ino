@@ -1,3 +1,4 @@
+// TEST CODE IS 9986
 // DISPLAY DIMENSIONS ARE 135 x 240
 #include <ArduinoJson.h>
 #include <TFT_eSPI.h>
@@ -13,11 +14,16 @@ String batteryPercentageText;
 String currentScreen;
 StaticJsonDocument<80> filter;
 StaticJsonDocument<1600> doc;
+JsonArray qaPairs;
 bool isPretendSleeping = false;
 bool isSleepEnabled = true;
 bool secondaryTextVisible = false;
+bool readyToPlay = false;
+bool activeGame;
 char key = 0;
 int defaultTextSize = 2;
+int currentQuestion = 0;
+int totalQuestions;
 int headerTextSize = defaultTextSize;
 int headerTextYPosition = 10;
 int primaryTextSize = 5;
@@ -100,13 +106,16 @@ void reset(){
   // Serial.println("reset()");
   code = "";
   secondaryTextVisible = false;
+  readyToPlay = false;
+  // need to update to only reset active game by holding * for 3 seconds.
+  activeGame = false;
   filter.clear();
+  displayStartScreen();
 }
 
 bool isCodeValid (){
   // Serial.println("isCodeValid()");
   filter[String(code)] = true;
-  
   // Deserialize the JSON document,
   DeserializationError error = deserializeJson(doc, codes, DeserializationOption::Filter(filter));
   // Test if parsing succeeds.
@@ -114,23 +123,12 @@ bool isCodeValid (){
     Serial.print(F("deserializeJson() failed: "));
     Serial.println(error.f_str());
   }
-
-  JsonArray qaPairs = doc[String(code)].as<JsonArray>();
-
+  qaPairs = doc[String(code)].as<JsonArray>();
   if(qaPairs){
-    Serial.println("Quiz " + code + " has " + qaPairs.size() + " questions.");
-    // for(JsonArray qaPair : qaPairs) {
-    //   // Serial.println("The answer for question X is Y");
-    //   for(int number : qaPair) {
-    //     // Maybe I'll need this nested loop to add the numbers to pairs that can be randomized before the game begins.
-    //     Serial.println(String(number));
-    //   }
-    // }
+    readyToPlay = true;
     return true;  
   }
   else {
-    Serial.println("Code " + code + " is invalid.");
-    // Serial.println(doc.size());
     return false;
   }
 }
@@ -200,12 +198,12 @@ boolean isLilyGoKeyboard(){
 
 void clearHeader(){
   // Serial.println("clearHeader()");
-  tft.fillRect(0, headerTextYPosition, 120, tft.fontHeight(), TFT_BLACK);
+  tft.setTextSize(headerTextSize);
+  tft.fillRect(0, headerTextYPosition, 180, tft.fontHeight(), TFT_BLACK);
 }
 
-void setHeader(String s){
-  // Serial.println("setHeader()");
-  tft.setTextSize(headerTextSize);
+void setHeaderText(String s){
+  // Serial.println("setHeaderText()");
   clearHeader();
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(0, headerTextYPosition);
@@ -214,12 +212,12 @@ void setHeader(String s){
 
 void clearPrimaryText(){
   // Serial.println("clearPrimaryText()");
+  tft.setTextSize(primaryTextSize);
   tft.fillRect(0, primaryTextYPosition, displayWidth, tft.fontHeight(), TFT_BLACK);
 }
 
 void setPrimaryText(String s, uint16_t c = TFT_BLUE){
   // Serial.println("setPrimaryText()");
-  tft.setTextSize(5);
   clearPrimaryText();
   tft.setTextColor(c, TFT_BLACK);
   tft.setCursor(0, primaryTextYPosition);
@@ -228,12 +226,12 @@ void setPrimaryText(String s, uint16_t c = TFT_BLUE){
 
 void clearSecondaryText(){
   // Serial.println("clearSecondaryText()");
+  tft.setTextSize(secondaryTextSize);
   tft.fillRect(0, secondaryTextYPosition, displayWidth, tft.fontHeight(), TFT_BLACK);
 }
 
 void setSecondaryText(String s){
   // Serial.println("setSecondaryText()");
-  tft.setTextSize(2);
   clearSecondaryText();
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.setCursor(0, secondaryTextYPosition);
@@ -242,13 +240,13 @@ void setSecondaryText(String s){
 
 void clearFooter(){
   // Serial.println("clearFooter()");
+  tft.setTextSize(footerTextSize);
   tft.fillRect(0, footerTextYPosition, displayWidth, tft.fontHeight(), TFT_BLACK);
 }
 
-void setFooter(String s){
-  // Serial.println("setFooter()");
-  tft.setTextSize(2);
-  tft.fillRect(0, footerTextYPosition, displayWidth, tft.fontHeight(), TFT_BLACK);
+void setFooterText(String s){
+  // Serial.println("setFooterText()");
+  clearFooter();
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(0, footerTextYPosition);
   tft.print(s);
@@ -260,6 +258,35 @@ void clearAllExceptBattery(){
   clearPrimaryText();
   clearSecondaryText();
   clearFooter();
+}
+
+void startGame(){
+  // Serial.println("sleep()");
+  activeGame = true;
+  currentQuestion = 0;
+  totalQuestions = qaPairs.size();
+  clearAllExceptBattery();
+  tft.setTextSize(5);
+  tft.setTextColor(TFT_BLUE, TFT_BLACK);
+  tft.setCursor(0, primaryTextYPosition);
+  int i = 0;
+  while(i < 8){
+    tft.print("#");
+    delay(50);
+    i++;
+  }
+  clearAllExceptBattery();
+  
+  Serial.println("Quiz " + code + " has " + qaPairs.size() + " questions.");
+  setHeaderText("QUESTION");
+  setPrimaryText("01"); // Switch this to the header when they press a button.
+  // setSecondaryText("PRESS * TO CLEAR"); // Switch this to the header when they press a button.
+  setFooterText("KEY IN YOUR ANSWER");
+  // for(JsonArray qaPair : qaPairs) {
+  //   Serial.print(qaPair[0].as<int>());
+  //   Serial.print(" : ");
+  //   Serial.println(qaPair[1].as<int>());
+  // }
 }
 
 void sleep(){
@@ -287,24 +314,23 @@ void displayStartScreen(){
   // Serial.println("displayStartScreen()");
   currentScreen = "startScreen";
   setBatteryPercentage();
-  setHeader("");
+  setHeaderText("");
   setPrimaryText("MR.QUIZ");
   setSecondaryText("LEARNING COMPANION");
-  setFooter("ENTER CODE TO BEGIN");
+  setFooterText("ENTER CODE TO BEGIN");
 }
 
 void displayCodeEntryScreen(){
   // Serial.println("displayCodeEntryScreen()");
   if(currentScreen != "codeEntryScreen"){
     currentScreen = "codeEntryScreen";
-    setHeader("CODE");
+    setHeaderText("CODE");
     setPrimaryText("");
     setSecondaryText("");
-    setFooter("PRESS * TO RESET");
+    setFooterText("PRESS * TO RESET");
     tft.setCursor(0, primaryTextYPosition);
   }
-  if(code.length() <= 3){
-    keyVal = String(key);
+  if(code.length() < 4){
     code = code + key;
     setPrimaryText(code);
   }
@@ -314,13 +340,17 @@ void displayCodeEntryScreen(){
       if(isCodeValid()){
         setPrimaryText(code,TFT_GREEN);
         setSecondaryText("IS VALID");
-        setFooter("PRESS # TO START");
-      } else {
+        setFooterText("PRESS # TO START");
+      }
+      else {
         setPrimaryText(code, TFT_RED);
         setSecondaryText("IS INVALID");
       }
     }
-  }
+    else {
+      Serial.println("IGNORING " + keyVal);
+    }
+  } 
 }
 
 void setup(){
@@ -334,21 +364,33 @@ void setup(){
 
 void loop(){
   if (keypad.getKeys()){
-    for (int i=0; i<LIST_MAX; i++){ // Scan the whole key list.
+    // Scan the whole key list.
+    for (int i=0; i<LIST_MAX; i++){
+      // Check that a key's state has changed to PRESSED.
       if (keypad.key[i].stateChanged && keypad.key[i].kstate == PRESSED){
+        // Set 'key' variable to the value of the key that was pressed.
         key = keypad.key[i].kchar;
+        keyVal = String(key);
+        // Set 'timeOfLastInteraction' to current time in ms.
         timeOfLastInteraction = millis();
+        // Check if the device is sleeping.
         if(isPretendSleeping == true){
+          // If it is wake it up.
           isPretendSleeping = false;
           displayStartScreen();
         }
         else if (key == '*'){
           if(currentScreen != "startScreen"){
             reset();
-            displayStartScreen();
           }
         }
         else if (key == '#'){
+          if(readyToPlay && !activeGame){
+            startGame();
+          }
+          else {
+            Serial.println("IGNORING " + keyVal);
+          }
         }
         else {
           displayCodeEntryScreen();
