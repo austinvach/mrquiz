@@ -261,7 +261,7 @@ void clearAllExceptBattery(){
 }
 
 void startGame(){
-  // Serial.println("sleep()");
+  // Serial.println("startGame()");
   activeGame = true;
   currentQuestion = 0;
   totalQuestions = qaPairs.size();
@@ -272,16 +272,29 @@ void startGame(){
   int i = 0;
   while(i < 8){
     tft.print("#");
-    delay(50);
+    delay(40);
     i++;
   }
-  clearAllExceptBattery();
+  showQuestion();
+}
+
+void showQuestion(){
+  // Serial.println("showQuestion()");
+  if(currentQuestion <= totalQuestions){
+    currentScreen = "questionScreen";
+    clearAllExceptBattery();
+    setHeaderText("QUESTION");
+    JsonArray qaPair = qaPairs[currentQuestion];
+    Serial.print(qaPair[0].as<int>());
+    Serial.print(" : ");
+    Serial.println(qaPair[1].as<int>());
+    setPrimaryText(qaPair[0].as<String>());
+    setFooterText("KEY IN YOUR ANSWER");
+  }
+  else {
+    Serial.println("DUUUDE");
+  }
   
-  Serial.println("Quiz " + code + " has " + qaPairs.size() + " questions.");
-  setHeaderText("QUESTION");
-  setPrimaryText("01"); // Switch this to the header when they press a button.
-  // setSecondaryText("PRESS * TO CLEAR"); // Switch this to the header when they press a button.
-  setFooterText("KEY IN YOUR ANSWER");
   // for(JsonArray qaPair : qaPairs) {
   //   Serial.print(qaPair[0].as<int>());
   //   Serial.print(" : ");
