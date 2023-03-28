@@ -10,46 +10,43 @@ TFT_eSPI tft = TFT_eSPI();
 
 String keyVal;
 String code;
+String userInput;
+String expectedResponse;
 String batteryPercentageText;
 String currentScreen;
+String currentQuestion;
 StaticJsonDocument<80> filter;
 StaticJsonDocument<1600> doc;
 JsonArray qaPairs;
-bool isPretendSleeping = false;
-bool isSleepEnabled = true;
-bool secondaryTextVisible = false;
-bool readyToPlay = false;
+bool pretendSleeping;
+bool secondaryTextVisible;
+bool readyToPlay;
 bool activeGame;
 char key = 0;
-int defaultTextSize = 2;
-int currentQuestion = 0;
+int currentQuestionIndex;
 int totalQuestions;
-int headerTextSize = defaultTextSize;
+int headerTextSize = 2;
 int headerTextYPosition = 10;
 int primaryTextSize = 5;
 int primaryTextYPosition = 40;
-int secondaryTextSize = defaultTextSize;
+int secondaryTextSize = 2;
 int secondaryTextYPosition = 88;
-int footerTextSize = defaultTextSize;
+int footerTextSize = 2;
 int footerTextYPosition = 116;
 int sleepTimer = 90; // Time in seconds before the device goes to sleep
 int32_t displayHeight = tft.width(); // Since we've rotated the screen 1/4 turn the height equals the width and visa versa
 int32_t displayWidth = tft.height();  
 long int lastBatteryCheck = 0;
-
 long timeOfLastInteraction = millis();
 const byte rows = 4;
 const byte cols = 3;
-
 char keys[rows][cols] = {
     {'1', '2', '3'},
     {'4', '5', '6'},
     {'7', '8', '9'},
     {'*', '0', '#'}};
-
 byte rowPins[rows] = {21, 27, 26, 22}; //connect to the row pinouts of the keypad
 byte colPins[cols] = {33, 32, 25};     //connect to the column pinouts of the keypad
-
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rows, cols);
 
 void updateBatteryStatus(bool force = false){
@@ -57,7 +54,7 @@ void updateBatteryStatus(bool force = false){
   if(!force && lastBatteryCheck != 0 && millis() - lastBatteryCheck < 5000) {
     return;
   }
-  if(isPretendSleeping){
+  if(pretendSleeping){
     return;
   }
   lastBatteryCheck = millis();
@@ -102,15 +99,14 @@ unsigned int getBatteryPercentage(){
   return max(min(batteryPercentage, 100), 0);
 }
 
-void reset(){
-  // Serial.println("reset()");
+void resetVariables(){
+  // Serial.println("resetVariables()");
   code = "";
   secondaryTextVisible = false;
   readyToPlay = false;
   // need to update to only reset active game by holding * for 3 seconds.
   activeGame = false;
   filter.clear();
-  displayStartScreen();
 }
 
 bool isCodeValid (){
@@ -128,25 +124,22 @@ bool isCodeValid (){
     readyToPlay = true;
     return true;  
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 // Check whether the device should be put to sleep and put it to sleep if it should
 void maybeSleepDevice() {
   // Serial.println("maybeSleepDevice()");
-  if(isSleepEnabled && !isPretendSleeping) {
+  if(!pretendSleeping) {
     long currentTime = millis();
     
     if(currentTime > (timeOfLastInteraction + sleepTimer * 1000)) {
-      clearAllExceptBattery();
-      reset();
+      resetVariables();
       sleep();
       // The device wont charge if it is sleeping, so when charging, do a pretend sleep
       if(isPoweredExternally()) {
         isLilyGoKeyboard();
-        isPretendSleeping = true;
+        pretendSleeping = true;
         tft.fillScreen(TFT_BLACK);
       }
       else {
@@ -181,14 +174,11 @@ bool isPoweredExternally(){
   {
     return true;
   }
-  else
-  {
-    return false;
-  } 
+  return false; 
 }
 
-// Get the keypad type
-boolean isLilyGoKeyboard(){
+// Get the keypad type - CHANGE TO BOOL
+bool isLilyGoKeyboard(){
   // Serial.println("isLilyGoKeyboard()");
   if(colPins[0] == 33) {
     return true;
@@ -263,7 +253,7 @@ void clearAllExceptBattery(){
 void startGame(){
   // Serial.println("startGame()");
   activeGame = true;
-  currentQuestion = 0;
+  currentQuestionIndex = 0;
   totalQuestions = qaPairs.size();
   clearAllExceptBattery();
   tft.setTextSize(5);
@@ -275,31 +265,21 @@ void startGame(){
     delay(40);
     i++;
   }
-  showQuestion();
+  showQuestionScreen();
 }
 
-void showQuestion(){
-  // Serial.println("showQuestion()");
-  if(currentQuestion <= totalQuestions){
+void showQuestionScreen(){
+  // Serial.println("showQuestionScreen()");
+  if(currentQuestionIndex <= totalQuestions){
     currentScreen = "questionScreen";
     clearAllExceptBattery();
     setHeaderText("QUESTION");
-    JsonArray qaPair = qaPairs[currentQuestion];
-    Serial.print(qaPair[0].as<int>());
-    Serial.print(" : ");
-    Serial.println(qaPair[1].as<int>());
-    setPrimaryText(qaPair[0].as<String>());
-    setFooterText("KEY IN YOUR ANSWER");
+    JsonArray qaPair = qaPairs[currentQuestionIndex];
+    currentQuestion = qaPair[0].as<String>();
+    expectedResponse = qaPair[1].as<String>();
+    setPrimaryText(currentQuestion);  
+    setFooterText("KEY IN THE ANSWER");
   }
-  else {
-    Serial.println("DUUUDE");
-  }
-  
-  // for(JsonArray qaPair : qaPairs) {
-  //   Serial.print(qaPair[0].as<int>());
-  //   Serial.print(" : ");
-  //   Serial.println(qaPair[1].as<int>());
-  // }
 }
 
 void sleep(){
@@ -318,38 +298,32 @@ void sleep(){
   clearPrimaryText();
 }
 
-void setBatteryPercentage(){
-  // Serial.println("setBatteryPercentage()");
-  updateBatteryStatus(true);
-}
-
-void displayStartScreen(){
-  // Serial.println("displayStartScreen()");
+void showStartScreen(){
+  // Serial.println("showStartScreen()");
   currentScreen = "startScreen";
-  setBatteryPercentage();
   setHeaderText("");
   setPrimaryText("MR.QUIZ");
   setSecondaryText("LEARNING COMPANION");
   setFooterText("ENTER CODE TO BEGIN");
 }
 
-void displayCodeEntryScreen(){
-  // Serial.println("displayCodeEntryScreen()");
-  if(currentScreen != "codeEntryScreen"){
-    currentScreen = "codeEntryScreen";
-    setHeaderText("CODE");
-    setPrimaryText("");
-    setSecondaryText("");
-    setFooterText("PRESS * TO RESET");
-    tft.setCursor(0, primaryTextYPosition);
-  }
+void showCodeEntryScreen(){
+  // Serial.println("showCodeEntryScreen()");
+  currentScreen = "codeEntryScreen";
+  setHeaderText("CODE");
+  setPrimaryText("");
+  setSecondaryText("");
+  setFooterText("PRESS * TO RESET");
+}
+
+void printCodeToScreen(){
+  // Serial.println("name()");
   if(code.length() < 4){
     code = code + key;
     setPrimaryText(code);
   }
   if (code.length() == 4){
     if(secondaryTextVisible != true){
-      secondaryTextVisible = true;
       if(isCodeValid()){
         setPrimaryText(code,TFT_GREEN);
         setSecondaryText("IS VALID");
@@ -359,11 +333,22 @@ void displayCodeEntryScreen(){
         setPrimaryText(code, TFT_RED);
         setSecondaryText("IS INVALID");
       }
-    }
-    else {
-      Serial.println("IGNORING " + keyVal);
+      secondaryTextVisible = true;
     }
   } 
+}
+
+void printUserInputToScreen(){
+  // Serial.println("printUserInputToScreen()");
+  if(userInput.length() == 0){
+    setHeaderText("QUESTION " + String(currentQuestionIndex + 1));
+    setSecondaryText("PRESS * TO CLEAR");
+    setFooterText("PRESS # TO SUBMIT");
+  }
+  if(userInput.length() < 2){
+    userInput = userInput + key;
+    setPrimaryText(userInput);
+  }
 }
 
 void setup(){
@@ -372,14 +357,16 @@ void setup(){
   tft.init();
   tft.setRotation(1);
   tft.invertDisplay(true);
-  displayStartScreen();
+  updateBatteryStatus(true);
+  showStartScreen();
 }
 
 void loop(){
+  // Check if keys have been pressed
   if (keypad.getKeys()){
     // Scan the whole key list.
     for (int i=0; i<LIST_MAX; i++){
-      // Check that a key's state has changed to PRESSED.
+      // Find the keys whose state has changed to PRESSED.
       if (keypad.key[i].stateChanged && keypad.key[i].kstate == PRESSED){
         // Set 'key' variable to the value of the key that was pressed.
         key = keypad.key[i].kchar;
@@ -387,26 +374,46 @@ void loop(){
         // Set 'timeOfLastInteraction' to current time in ms.
         timeOfLastInteraction = millis();
         // Check if the device is sleeping.
-        if(isPretendSleeping == true){
+        if(pretendSleeping == true){
           // If it is wake it up.
-          isPretendSleeping = false;
-          displayStartScreen();
-        }
-        else if (key == '*'){
-          if(currentScreen != "startScreen"){
-            reset();
-          }
-        }
-        else if (key == '#'){
-          if(readyToPlay && !activeGame){
-            startGame();
-          }
-          else {
-            Serial.println("IGNORING " + keyVal);
-          }
+          pretendSleeping = false;
+          updateBatteryStatus(true);
+          showStartScreen();
         }
         else {
-          displayCodeEntryScreen();
+          if (key == '*'){
+            if (currentScreen == "codeEntryScreen"){
+              resetVariables();
+              showStartScreen();
+            }
+            else if (currentScreen == "questionScreen"){
+              userInput = "";
+              setHeaderText("QUESTION");
+              setPrimaryText(currentQuestion);
+              setSecondaryText("");
+              setFooterText("KEY IN THE ANSWER");
+            }
+          }
+          else if (key == '#'){
+            if (currentScreen == "codeEntryScreen" && readyToPlay){
+              startGame();
+            }
+            else if (currentScreen == "questionScreen"){
+              // Serial.println("# SUBMIT RESPONSE");
+            }
+          }
+          else {
+            if (currentScreen == "startScreen"){
+              showCodeEntryScreen();
+              printCodeToScreen();
+            }
+            else if (currentScreen == "codeEntryScreen"){
+              printCodeToScreen();
+            }
+            else if (currentScreen == "questionScreen"){
+              printUserInputToScreen();
+            }
+          }
         }
       }
     }   
