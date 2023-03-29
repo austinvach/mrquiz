@@ -22,6 +22,7 @@ bool pretendSleeping;
 bool secondaryTextVisible;
 bool readyToPlay;
 bool activeGame;
+bool readyForNextQuestion;
 char key = 0;
 int currentQuestionIndex;
 int totalQuestions;
@@ -33,7 +34,7 @@ int secondaryTextSize = 2;
 int secondaryTextYPosition = 88;
 int footerTextSize = 2;
 int footerTextYPosition = 116;
-int sleepTimer = 90; // Time in seconds before the device goes to sleep
+int sleepTimer = 60; // Time in seconds before the device goes to sleep
 int32_t displayHeight = tft.width(); // Since we've rotated the screen 1/4 turn the height equals the width and visa versa
 int32_t displayWidth = tft.height();  
 long int lastBatteryCheck = 0;
@@ -270,7 +271,7 @@ void startGame(){
 
 void showQuestionScreen(){
   // Serial.println("showQuestionScreen()");
-  if(currentQuestionIndex <= totalQuestions){
+  if(currentQuestionIndex < totalQuestions){
     currentScreen = "questionScreen";
     clearAllExceptBattery();
     setHeaderText("QUESTION");
@@ -279,6 +280,11 @@ void showQuestionScreen(){
     expectedResponse = qaPair[1].as<String>();
     setPrimaryText(currentQuestion);  
     setFooterText("KEY IN THE ANSWER");
+  }
+  else if (currentQuestionIndex == totalQuestions){
+    currentScreen = "questionScreen";
+    clearAllExceptBattery();
+    setPrimaryText("DONE!");  
   }
 }
 
@@ -399,7 +405,27 @@ void loop(){
               startGame();
             }
             else if (currentScreen == "questionScreen"){
-              // Serial.println("# SUBMIT RESPONSE");
+              if (readyForNextQuestion) {
+                // setHeaderText("QUESTION");
+                // setPrimaryText("NEXT");
+                // setSecondaryText("");
+                // setFooterText("KEY IN THE ANSWER");
+                readyForNextQuestion = false;
+                showQuestionScreen();
+              }
+              else if (userInput == expectedResponse){
+                setPrimaryText(userInput, TFT_GREEN);
+                setSecondaryText("THAT'S CORRECT!");
+                setFooterText("PRESS # TO CONTINUE");
+                readyForNextQuestion = true;
+                userInput = "";
+                currentQuestionIndex++;
+              }
+              else if (userInput.length() > 0){
+                setPrimaryText(userInput, TFT_RED);
+                setSecondaryText("TRY AGAIN");
+                setFooterText("PRESS * TO CLEAR");
+              }
             }
           }
           else {
