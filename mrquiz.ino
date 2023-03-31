@@ -282,9 +282,10 @@ void showQuestionScreen(){
     setFooterText("KEY IN THE ANSWER");
   }
   else if (currentQuestionIndex == totalQuestions){
-    currentScreen = "questionScreen";
+    currentScreen = "endScreen";
     clearAllExceptBattery();
-    setPrimaryText("DONE!");  
+    setPrimaryText("THE END");
+    setFooterText("PRESS * TO RESET"); 
   }
 }
 
@@ -398,6 +399,20 @@ void loop(){
               setPrimaryText(currentQuestion);
               setSecondaryText("");
               setFooterText("KEY IN THE ANSWER");
+            }
+            else if (currentScreen == "endScreen"){
+              resetVariables();
+              clearAllExceptBattery();
+              tft.setTextSize(5);
+              tft.setTextColor(TFT_BLUE, TFT_BLACK);
+              tft.setCursor(0, primaryTextYPosition);
+              int i = 0;
+              while(i < 8){
+                tft.print("*");
+                delay(40);
+                i++;
+              }
+              showStartScreen();
             }
           }
           else if (key == '#'){
