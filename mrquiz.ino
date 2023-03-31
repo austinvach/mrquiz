@@ -279,7 +279,7 @@ void showQuestionScreen(){
     JsonArray qaPair = qaPairs[currentQuestionIndex];
     currentQuestion = qaPair[0].as<String>();
     expectedResponse = qaPair[1].as<String>();
-    setPrimaryText(currentQuestion, TFT_WHITE);  
+    setPrimaryText(currentQuestion, TFT_DARKGREY);  
     setFooterText("KEY IN THE ANSWER");
   }
   else if (currentQuestionIndex == totalQuestions){
@@ -426,8 +426,12 @@ void printCodeToScreen(){
 void printUserInputToScreen(){
   // Serial.println("printUserInputToScreen()");
   if(userInput.length() == 0){
-    setHeaderText("QUESTION " + currentQuestion);
-    // setHeaderText("QUESTION " + String(currentQuestionIndex + 1));
+    if(geoSafariMode){
+      setHeaderText("QUESTION " + currentQuestion);
+    }
+    else {
+      setHeaderText("QUESTION " + String(currentQuestionIndex + 1));
+    }
     setSecondaryToClearText();
     // setSecondaryText("PRESS * TO CLEAR");
     setFooterToSubmitText();
@@ -477,7 +481,7 @@ void loop(){
             else if (currentScreen == "questionScreen"){
               userInput = "";
               setHeaderText("QUESTION");
-              setPrimaryText(currentQuestion, TFT_WHITE);
+              setPrimaryText(currentQuestion, TFT_DARKGREY);
               setSecondaryText("");
               setFooterText("KEY IN THE ANSWER");
             }
