@@ -18,6 +18,7 @@ String currentQuestion;
 StaticJsonDocument<80> filter;
 StaticJsonDocument<1600> doc;
 JsonArray qaPairs;
+bool geoSafariMode = true;
 bool pretendSleeping;
 bool secondaryTextVisible;
 bool readyToPlay;
@@ -278,14 +279,22 @@ void showQuestionScreen(){
     JsonArray qaPair = qaPairs[currentQuestionIndex];
     currentQuestion = qaPair[0].as<String>();
     expectedResponse = qaPair[1].as<String>();
-    setPrimaryText(currentQuestion);  
+    setPrimaryText(currentQuestion, TFT_WHITE);  
     setFooterText("KEY IN THE ANSWER");
   }
   else if (currentQuestionIndex == totalQuestions){
     currentScreen = "endScreen";
     clearAllExceptBattery();
     setPrimaryText("THE END");
-    setFooterText("PRESS * TO RESET"); 
+    clearFooter();
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.setCursor(0, footerTextYPosition);
+    tft.print("PRESS ");
+    tft.setTextColor(TFT_RED, TFT_BLACK);
+    tft.print("*");
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.print(" TO RESET");
+    // setFooterText("PRESS * TO RESET"); 
   }
 }
 
@@ -320,11 +329,79 @@ void showCodeEntryScreen(){
   setHeaderText("CODE");
   setPrimaryText("");
   setSecondaryText("");
-  setFooterText("PRESS * TO RESET");
+  clearFooter();
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setCursor(0, footerTextYPosition);
+  tft.print("PRESS ");
+  tft.setTextColor(TFT_RED, TFT_BLACK);
+  tft.print("*");
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.print(" TO RESET");
+  // setFooterText("PRESS * TO RESET");
+}
+
+void setFooterToStartText(){
+  // Serial.println("setFooterToStartText()");
+  clearFooter();
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setCursor(0, footerTextYPosition);
+  tft.print("PRESS ");
+  tft.setTextColor(TFT_GREEN, TFT_BLACK);
+  tft.print("#");
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.print(" TO START");
+}
+
+void setFooterToSubmitText(){
+  // Serial.println("setFooterToSubmitText");
+  clearFooter();
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setCursor(0, footerTextYPosition);
+  tft.print("PRESS ");
+  tft.setTextColor(TFT_GREEN, TFT_BLACK);
+  tft.print("#");
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.print(" TO SUBMIT");
+}
+
+void setFooterToContinueText(){
+  // Serial.println("setFooterToContinueText()");
+  clearFooter();
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setCursor(0, footerTextYPosition);
+  tft.print("PRESS ");
+  tft.setTextColor(TFT_GREEN, TFT_BLACK);
+  tft.print("#");
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.print(" TO CONTINUE");
+}
+
+void setFooterToClearText(){
+  // Serial.println("setFooterToClearText()");
+  clearFooter();
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setCursor(0, footerTextYPosition);
+  tft.print("PRESS ");
+  tft.setTextColor(TFT_RED, TFT_BLACK);
+  tft.print("*");
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.print(" TO CLEAR");
+}
+
+void setSecondaryToClearText(){
+  // Serial.println("setSecondaryToClearText()");
+  clearSecondaryText();
+  tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
+  tft.setCursor(0, secondaryTextYPosition);
+  tft.print("PRESS ");
+  tft.setTextColor(TFT_RED, TFT_BLACK);
+  tft.print("*");
+  tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
+  tft.print(" TO CLEAR");
 }
 
 void printCodeToScreen(){
-  // Serial.println("name()");
+  // Serial.println("printCodeToScreen()");
   if(code.length() < 4){
     code = code + key;
     setPrimaryText(code);
@@ -332,9 +409,10 @@ void printCodeToScreen(){
   if (code.length() == 4){
     if(secondaryTextVisible != true){
       if(isCodeValid()){
-        setPrimaryText(code,TFT_GREEN);
+        setPrimaryText(code, TFT_GREEN);
         setSecondaryText("IS VALID");
-        setFooterText("PRESS # TO START");
+        setFooterToStartText();
+        // setFooterText("PRESS # TO START");
       }
       else {
         setPrimaryText(code, TFT_RED);
@@ -348,9 +426,12 @@ void printCodeToScreen(){
 void printUserInputToScreen(){
   // Serial.println("printUserInputToScreen()");
   if(userInput.length() == 0){
-    setHeaderText("QUESTION " + String(currentQuestionIndex + 1));
-    setSecondaryText("PRESS * TO CLEAR");
-    setFooterText("PRESS # TO SUBMIT");
+    setHeaderText("QUESTION " + currentQuestion);
+    // setHeaderText("QUESTION " + String(currentQuestionIndex + 1));
+    setSecondaryToClearText();
+    // setSecondaryText("PRESS * TO CLEAR");
+    setFooterToSubmitText();
+    // setFooterText("PRESS # TO SUBMIT");
   }
   if(userInput.length() < 2){
     userInput = userInput + key;
@@ -396,7 +477,7 @@ void loop(){
             else if (currentScreen == "questionScreen"){
               userInput = "";
               setHeaderText("QUESTION");
-              setPrimaryText(currentQuestion);
+              setPrimaryText(currentQuestion, TFT_WHITE);
               setSecondaryText("");
               setFooterText("KEY IN THE ANSWER");
             }
@@ -421,17 +502,14 @@ void loop(){
             }
             else if (currentScreen == "questionScreen"){
               if (readyForNextQuestion) {
-                // setHeaderText("QUESTION");
-                // setPrimaryText("NEXT");
-                // setSecondaryText("");
-                // setFooterText("KEY IN THE ANSWER");
                 readyForNextQuestion = false;
                 showQuestionScreen();
               }
               else if (userInput == expectedResponse){
                 setPrimaryText(userInput, TFT_GREEN);
                 setSecondaryText("THAT'S CORRECT!");
-                setFooterText("PRESS # TO CONTINUE");
+                setFooterToContinueText();
+                // setFooterText("PRESS # TO CONTINUE");
                 readyForNextQuestion = true;
                 userInput = "";
                 currentQuestionIndex++;
@@ -439,7 +517,8 @@ void loop(){
               else if (userInput.length() > 0){
                 setPrimaryText(userInput, TFT_RED);
                 setSecondaryText("TRY AGAIN");
-                setFooterText("PRESS * TO CLEAR");
+                setFooterToClearText();
+                // setFooterText("PRESS * TO CLEAR");
               }
             }
           }
