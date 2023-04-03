@@ -279,7 +279,7 @@ void showQuestionScreen(){
     JsonArray qaPair = qaPairs[currentQuestionIndex];
     currentQuestion = qaPair[0].as<String>();
     expectedResponse = qaPair[1].as<String>();
-    setPrimaryText(currentQuestion, TFT_DARKGREY);  
+    setPrimaryText(currentQuestion);  
     setFooterText("KEY IN THE ANSWER");
   }
   else if (currentQuestionIndex == totalQuestions){
@@ -329,15 +329,15 @@ void showCodeEntryScreen(){
   setHeaderText("CODE");
   setPrimaryText("");
   setSecondaryText("");
-  clearFooter();
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.setCursor(0, footerTextYPosition);
-  tft.print("PRESS ");
-  tft.setTextColor(TFT_RED, TFT_BLACK);
-  tft.print("*");
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.print(" TO RESET");
-  // setFooterText("PRESS * TO RESET");
+  // clearFooter();
+  // tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  // tft.setCursor(0, footerTextYPosition);
+  // tft.print("PRESS ");
+  // tft.setTextColor(TFT_RED, TFT_BLACK);
+  // tft.print("*");
+  // tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  // tft.print(" TO RESET");
+  setFooterText("PRESS * TO RESET");
 }
 
 void setFooterToStartText(){
@@ -404,15 +404,15 @@ void printCodeToScreen(){
   // Serial.println("printCodeToScreen()");
   if(code.length() < 4){
     code = code + key;
-    setPrimaryText(code);
+    setPrimaryText(code, TFT_WHITE);
   }
   if (code.length() == 4){
     if(secondaryTextVisible != true){
       if(isCodeValid()){
         setPrimaryText(code, TFT_GREEN);
         setSecondaryText("IS VALID");
-        setFooterToStartText();
-        // setFooterText("PRESS # TO START");
+        // setFooterToStartText();
+        setFooterText("PRESS # TO START");
       }
       else {
         setPrimaryText(code, TFT_RED);
@@ -432,14 +432,14 @@ void printUserInputToScreen(){
     else {
       setHeaderText("QUESTION " + String(currentQuestionIndex + 1));
     }
-    setSecondaryToClearText();
-    // setSecondaryText("PRESS * TO CLEAR");
-    setFooterToSubmitText();
-    // setFooterText("PRESS # TO SUBMIT");
+    // setSecondaryToClearText();
+    setSecondaryText("PRESS * TO CLEAR");
+    // setFooterToSubmitText();
+    setFooterText("PRESS # TO SUBMIT");
   }
   if(userInput.length() < 2){
     userInput = userInput + key;
-    setPrimaryText(userInput);
+    setPrimaryText(userInput, TFT_WHITE);
   }
 }
 
@@ -481,7 +481,7 @@ void loop(){
             else if (currentScreen == "questionScreen"){
               userInput = "";
               setHeaderText("QUESTION");
-              setPrimaryText(currentQuestion, TFT_DARKGREY);
+              setPrimaryText(currentQuestion, TFT_WHITE);
               setSecondaryText("");
               setFooterText("KEY IN THE ANSWER");
             }
@@ -512,8 +512,8 @@ void loop(){
               else if (userInput == expectedResponse){
                 setPrimaryText(userInput, TFT_GREEN);
                 setSecondaryText("THAT'S CORRECT!");
-                setFooterToContinueText();
-                // setFooterText("PRESS # TO CONTINUE");
+                // setFooterToContinueText();
+                setFooterText("PRESS # TO CONTINUE");
                 readyForNextQuestion = true;
                 userInput = "";
                 currentQuestionIndex++;
@@ -521,8 +521,8 @@ void loop(){
               else if (userInput.length() > 0){
                 setPrimaryText(userInput, TFT_RED);
                 setSecondaryText("TRY AGAIN");
-                setFooterToClearText();
-                // setFooterText("PRESS * TO CLEAR");
+                // setFooterToClearText();
+                setFooterText("PRESS * TO CLEAR");
               }
             }
           }
