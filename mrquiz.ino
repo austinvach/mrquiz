@@ -23,7 +23,8 @@ bool pretendSleeping;
 bool secondaryTextVisible;
 bool readyToPlay;
 bool activeGame;
-bool readyForNextQuestion;
+bool readyForNewQuestion;
+bool readyForNewInput;
 char key = 0;
 int currentQuestionIndex;
 int totalQuestions;
@@ -479,7 +480,10 @@ void loop(){
               showStartScreen();
             }
             else if (currentScreen == "questionScreen"){
-              if(!readyForNextQuestion){
+              if (readyForNewInput) {
+                readyForNewInput = false;
+              }
+              if(!readyForNewQuestion){
                 userInput = "";
                 setHeaderText("QUESTION");
                 setPrimaryText(currentQuestion);
@@ -507,8 +511,8 @@ void loop(){
               startGame();
             }
             else if (currentScreen == "questionScreen"){
-              if (readyForNextQuestion) {
-                readyForNextQuestion = false;
+              if (readyForNewQuestion) {
+                readyForNewQuestion = false;
                 showQuestionScreen();
               }
               else if (userInput == expectedResponse){
@@ -516,7 +520,7 @@ void loop(){
                 setSecondaryText("THAT'S CORRECT!");
                 // setFooterToContinueText();
                 setFooterText("PRESS # TO CONTINUE");
-                readyForNextQuestion = true;
+                readyForNewQuestion = true;
                 userInput = "";
                 currentQuestionIndex++;
               }
@@ -525,6 +529,8 @@ void loop(){
                 setSecondaryText("TRY AGAIN");
                 // setFooterToClearText();
                 setFooterText("PRESS * TO CLEAR");
+                readyForNewInput = true;
+                userInput = "";
               }
             }
           }
@@ -537,7 +543,7 @@ void loop(){
               printCodeToScreen();
             }
             else if (currentScreen == "questionScreen"){
-              if(!readyForNextQuestion){
+              if(!readyForNewQuestion && !readyForNewInput){
                 printUserInputToScreen();
               }
             }
