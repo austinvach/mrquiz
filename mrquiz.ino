@@ -479,11 +479,13 @@ void loop(){
               showStartScreen();
             }
             else if (currentScreen == "questionScreen"){
-              userInput = "";
-              setHeaderText("QUESTION");
-              setPrimaryText(currentQuestion, TFT_WHITE);
-              setSecondaryText("");
-              setFooterText("KEY IN THE ANSWER");
+              if(!readyForNextQuestion){
+                userInput = "";
+                setHeaderText("QUESTION");
+                setPrimaryText(currentQuestion);
+                setSecondaryText("");
+                setFooterText("KEY IN THE ANSWER");
+              }
             }
             else if (currentScreen == "endScreen"){
               resetVariables();
@@ -535,7 +537,9 @@ void loop(){
               printCodeToScreen();
             }
             else if (currentScreen == "questionScreen"){
-              printUserInputToScreen();
+              if(!readyForNextQuestion){
+                printUserInputToScreen();
+              }
             }
           }
         }
