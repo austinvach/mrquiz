@@ -18,7 +18,7 @@ String currentQuestion;
 StaticJsonDocument<80> filter;
 StaticJsonDocument<1600> doc;
 JsonArray qaPairs;
-bool geoSafariMode = true;
+bool geoSafariMode;
 bool pretendSleeping;
 bool secondaryTextVisible;
 bool readyToPlay;
@@ -269,7 +269,12 @@ void showQuestionScreen(){
     clearAllExceptBattery();
     setHeaderText("QUESTION");
     JsonArray qaPair = qaPairs[currentQuestionIndex];
-    currentQuestion = qaPair[0].as<String>();
+    if(geoSafariMode){
+      currentQuestion = qaPair[0].as<String>();
+    }
+    else {
+      currentQuestion = String(currentQuestionIndex + 1);
+    }
     expectedResponse = qaPair[1].as<String>();
     setPrimaryText(currentQuestion);  
     setFooterText("KEY IN THE ANSWER");
@@ -278,15 +283,7 @@ void showQuestionScreen(){
     currentScreen = "endScreen";
     clearAllExceptBattery();
     setPrimaryText("THE END");
-    clearFooter();
-    tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.setCursor(0, footerTextYPosition);
-    tft.print("PRESS ");
-    tft.setTextColor(TFT_RED, TFT_BLACK);
-    tft.print("*");
-    tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.print(" TO RESET");
-    // setFooterText("PRESS * TO RESET"); 
+    setFooterText("PRESS * TO RESET"); 
   }
 }
 
@@ -311,7 +308,12 @@ void showStartScreen(){
   currentScreen = "startScreen";
   setHeaderText("");
   setPrimaryText("MR.QUIZ");
-  setSecondaryText("LEARNING COMPANION");
+  if(geoSafariMode == true){
+    setSecondaryText("GEOSAFARI MODE");
+  }
+  else{
+    setSecondaryText("LEARNING COMPANION");
+  }
   setFooterText("ENTER CODE TO BEGIN");
 }
 
@@ -492,6 +494,14 @@ void keypadEvent(KeypadEvent key){
     resetVariables();
     playTransitionAnimation();
     showStartScreen();
-    Serial.println("HOLD");
+  }
+  if (keypad.getState() == HOLD && key == '#' && currentScreen == "startScreen"){
+    geoSafariMode = !geoSafariMode;
+    if(geoSafariMode == true){
+      setSecondaryText("GEOSAFARI MODE");
+    }
+    else {
+      setSecondaryText("LEARNING COMPANION");
+    }
   }
 }
