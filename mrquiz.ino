@@ -321,76 +321,8 @@ void showCodeEntryScreen(){
   setHeaderText("CODE");
   setPrimaryText("");
   setSecondaryText("");
-  // clearFooter();
-  // tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  // tft.setCursor(0, footerTextYPosition);
-  // tft.print("PRESS ");
-  // tft.setTextColor(TFT_RED, TFT_BLACK);
-  // tft.print("*");
-  // tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  // tft.print(" TO RESET");
   setFooterText("PRESS * TO RESET");
 }
-
-// void setFooterToStartText(){
-//   // Serial.println("setFooterToStartText()");
-//   clearFooter();
-//   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-//   tft.setCursor(0, footerTextYPosition);
-//   tft.print("PRESS ");
-//   tft.setTextColor(TFT_GREEN, TFT_BLACK);
-//   tft.print("#");
-//   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-//   tft.print(" TO START");
-// }
-
-// void setFooterToSubmitText(){
-//   // Serial.println("setFooterToSubmitText");
-//   clearFooter();
-//   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-//   tft.setCursor(0, footerTextYPosition);
-//   tft.print("PRESS ");
-//   tft.setTextColor(TFT_GREEN, TFT_BLACK);
-//   tft.print("#");
-//   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-//   tft.print(" TO SUBMIT");
-// }
-
-// void setFooterToContinueText(){
-//   // Serial.println("setFooterToContinueText()");
-//   clearFooter();
-//   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-//   tft.setCursor(0, footerTextYPosition);
-//   tft.print("PRESS ");
-//   tft.setTextColor(TFT_GREEN, TFT_BLACK);
-//   tft.print("#");
-//   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-//   tft.print(" TO CONTINUE");
-// }
-
-// void setFooterToClearText(){
-//   // Serial.println("setFooterToClearText()");
-//   clearFooter();
-//   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-//   tft.setCursor(0, footerTextYPosition);
-//   tft.print("PRESS ");
-//   tft.setTextColor(TFT_RED, TFT_BLACK);
-//   tft.print("*");
-//   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-//   tft.print(" TO CLEAR");
-// }
-
-// void setSecondaryToClearText(){
-//   // Serial.println("setSecondaryToClearText()");
-//   clearSecondaryText();
-//   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-//   tft.setCursor(0, secondaryTextYPosition);
-//   tft.print("PRESS ");
-//   tft.setTextColor(TFT_RED, TFT_BLACK);
-//   tft.print("*");
-//   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-//   tft.print(" TO CLEAR");
-// }
 
 void printCodeToScreen(){
   // Serial.println("printCodeToScreen()");
@@ -541,6 +473,7 @@ void loop(){
 }
 
 void playTransitionAnimation(){
+  // Serial.println("playTransitionAnimation()");
   clearAllExceptBattery();
   tft.setTextSize(5);
   tft.setTextColor(TFT_BLUE, TFT_BLACK);
@@ -554,6 +487,7 @@ void playTransitionAnimation(){
 }
 
 void keypadEvent(KeypadEvent key){
+  // Serial.println("keypadEvent()");
   if (keypad.getState() == HOLD && key == '*' && currentScreen != "startScreen"){
     resetVariables();
     playTransitionAnimation();
