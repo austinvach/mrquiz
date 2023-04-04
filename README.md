@@ -8,6 +8,7 @@ Mr. Quiz is a DIY device similar to the original [GeoSafari](https://en.wikipedi
 - [ ] Add scoring (3 tries per question with fewer points awarded for each mistake).
 - [ ] Allow user to specify the time to respond at the start of each game (adjust sleep timer accordingly).
 - [ ] Add two player mode.
+- [ ] Store geoSafariMode state in durable memory.
 - [ ] Update [Codes.h](Codes.h) to include all known GeoSafari codes and the associated Q&A pairs.
 - [ ] Enable deep sleep when disconnected from power during "pretend sleep".
 
