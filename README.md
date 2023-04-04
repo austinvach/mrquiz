@@ -17,8 +17,9 @@ Mr. Quiz is a DIY device similar to the original [GeoSafari](https://en.wikipedi
 1. [3.7V Battery with Micro JST 1.25mm Connector](https://a.co/d/82xNgZM)
    - Any 3.7V lithium ion battery with at least 1000 mAh and a 1.25mm JST connector should be fine.
    - If you want the battery to fit inside the keyboard kit, maximum dimensions are 40 x 52 x 11mm. 
-1. [3D Printed Case]()
-1. [3D Printed Battery Mount]()
+1. [3D Printed Case](3D/keyboard-case.stl)
+   - The [3D](3D) folder contains individual STLs for the upper and lower sections in case you want to print them in separate colors. 
+3. [3D Printed Battery Support](3D/battery-support.stl)
 
 ## Device Pics
 
