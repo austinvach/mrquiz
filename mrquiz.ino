@@ -18,7 +18,8 @@ String currentQuestion;
 StaticJsonDocument<80> filter;
 StaticJsonDocument<1600> doc;
 JsonArray qaPairs;
-bool geoSafariMode;
+// Temporarily setting geoSafariMode to default to true until I can either preserve state in durable memory.
+bool geoSafariMode = true;
 bool pretendSleeping;
 bool secondaryTextVisible;
 bool readyToPlay;
