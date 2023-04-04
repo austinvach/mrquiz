@@ -24,3 +24,5 @@ Mr. Quiz is a DIY device similar to the original [GeoSafari](https://en.wikipedi
 ## Device Pics
 
 ![IMG_7676](https://user-images.githubusercontent.com/7928540/228622020-f4648935-bd6c-4215-b299-7fe03483bc62.jpg)
+
+> Much of this project was based off the [LNPoS project](https://github.com/lnbits/lnpos/tree/main). A big shoutout LNbits for the cool work that they are doing!
