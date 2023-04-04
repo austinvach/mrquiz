@@ -12,8 +12,11 @@ Mr. Quiz is a DIY device similar to the original [GeoSafari](https://en.wikipedi
 - [ ] Enable deep sleep when disconnected from power during "pretend sleep".
 
 ## Shopping List
-1. [LILYGO® LNURLPoS T-Display Keyboard Kit](https://a.aliexpress.com/_mNxfdco)
-1. [3.7 Volt Rechargeable Battery, 1200mAh LiPo Battery with Micro JST 1.25mm 2Pin Male Connector](https://a.co/d/82xNgZM)
+1. [T-Display Keyboard Kit](https://a.aliexpress.com/_mNxfdco)
+   - If you don't have access to a 3D printer, [purchase the version that has a shell](https://www.aliexpress.us/item/3256803403391540.html).
+1. [3.7V Battery with Micro JST 1.25mm Connector](https://a.co/d/82xNgZM)
+   - Any 3.7V lithium ion battery with at least 1000 mAh and a 1.25mm JST connector should be fine.
+   - If you want the battery to fit inside the keyboard kit, maximum dimensions are 40 x 52 x 11mm. 
 1. [3D Printed Case]()
 1. [3D Printed Battery Mount]()
 
