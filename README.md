@@ -21,7 +21,7 @@ Mr. Quiz is a DIY device similar to the original [GeoSafari](https://en.wikipedi
    - The [3D](3D) folder contains individual STLs for the upper and lower sections in case you want to print them in separate colors. 
 3. [3D Printed Battery Support](3D/battery-support.stl)
 
-## Device Pics
+## The Device
 
 ![mrquiz](https://user-images.githubusercontent.com/7928540/229888725-3ef2f42c-9a16-4bfd-ad37-2b7054d0659a.jpg)
 
