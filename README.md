@@ -1,5 +1,5 @@
 # Electronic Learning Game
-Mr. Quiz is similar to the original [GeoSafari](https://en.wikipedia.org/wiki/GeoSafari), but better! It supports legacy GeoSafari content as well as brand new content that will soon be available for purchase.
+Mr. Quiz is a DIY device similar to the original [GeoSafari](https://en.wikipedia.org/wiki/GeoSafari). It supports legacy GeoSafari content as well as brand new content that will soon be available for purchase.
 
 ## Project To-Dos
 - [x] Create POC that reads from [Codes.h](Codes.h) and accepts input from the user.
@@ -10,6 +10,12 @@ Mr. Quiz is similar to the original [GeoSafari](https://en.wikipedia.org/wiki/Ge
 - [ ] Add two player mode.
 - [ ] Update [Codes.h](Codes.h) to include all known GeoSafari codes and the associated Q&A pairs.
 - [ ] Enable deep sleep when disconnected from power during "pretend sleep".
+
+## Shopping List
+1. [LILYGO® LNURLPoS T-Display Keyboard Kit](https://a.aliexpress.com/_mNxfdco)
+1. [3.7 Volt Rechargeable Battery, 1200mAh LiPo Battery with Micro JST 1.25mm 2Pin Male Connector](https://a.co/d/82xNgZM)
+1. [3D Printed Case]()
+1. [3D Printed Battery Mount]()
 
 ## Device Pics
 
