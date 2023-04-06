@@ -2,9 +2,6 @@
 Mr. Quiz is a DIY device similar to the original [GeoSafari](https://en.wikipedia.org/wiki/GeoSafari). It supports legacy GeoSafari content as well as brand new content that will soon be available for purchase.
 
 ## Project To-Dos
-- [x] Create POC that reads from [Codes.h](Codes.h) and accepts input from the user.
-- [ ] Randomize ordering of Q/A pairs at the start of a new game.
-- [ ] Add option to toggle between GeoSafari mode and standard mode (GeoSafari mode question numbers are not sequential but map to the lights on the original unit).
 - [ ] Add scoring (3 tries per question with fewer points awarded for each mistake).
 - [ ] Allow user to specify the time to respond at the start of each game (adjust sleep timer accordingly).
 - [ ] Add two player mode.
