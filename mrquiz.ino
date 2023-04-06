@@ -1,4 +1,3 @@
-// TEST CODE IS 9986
 // DISPLAY DIMENSIONS ARE 135 x 240
 #include <ArduinoJson.h>
 #include <TFT_eSPI.h>
@@ -16,6 +15,7 @@ String batteryPercentageText;
 String currentScreen;
 String currentQuestion;
 StaticJsonDocument<80> filter;
+StaticJsonDocument<200> temp;
 StaticJsonDocument<1600> doc;
 JsonArray qaPairs;
 // Temporarily setting geoSafariMode to default to true until I can either preserve state in durable memory.
@@ -52,6 +52,15 @@ char keys[rows][cols] = {
 byte rowPins[rows] = {21, 27, 26, 22}; //connect to the row pinouts of the keypad
 byte colPins[cols] = {33, 32, 25};     //connect to the column pinouts of the keypad
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rows, cols);
+
+class QAP {
+  public:
+    int questionNumber;
+    int geoSafariNumber;
+    int answer;
+};
+
+QAP objects[26];
 
 void updateBatteryStatus(bool force = false){
   // Serial.println("updateBatteryStatus()");
@@ -108,7 +117,6 @@ void resetVariables(){
   code = "";
   secondaryTextVisible = false;
   readyToPlay = false;
-  // need to update to only reset active game by holding * for 3 seconds.
   activeGame = false;
   filter.clear();
 }
@@ -125,6 +133,17 @@ bool isCodeValid (){
   }
   qaPairs = doc[String(code)].as<JsonArray>();
   if(qaPairs){
+    int numObjects = qaPairs.size();
+    for (int i = 0; i < numObjects; i++) {
+      // JsonArray qaPair = qaPairs[i];
+      QAP newObj;
+      newObj.questionNumber = i + 1;
+      newObj.geoSafariNumber = qaPairs[i][0].as<int>();
+      newObj.answer = qaPairs[i][1].as<int>();
+      objects[i] = newObj;
+    }
+    // Shuffle the array of objects
+    shuffleQAPairs(objects, numObjects);
     readyToPlay = true;
     return true;  
   }
@@ -269,14 +288,14 @@ void showQuestionScreen(){
     currentScreen = "questionScreen";
     clearAllExceptBattery();
     setHeaderText("QUESTION");
-    JsonArray qaPair = qaPairs[currentQuestionIndex];
+    QAP current = objects[currentQuestionIndex];
     if(geoSafariMode){
-      currentQuestion = qaPair[0].as<String>();
+      currentQuestion = current.geoSafariNumber;
     }
     else {
-      currentQuestion = String(currentQuestionIndex + 1);
+      currentQuestion = current.questionNumber;
     }
-    expectedResponse = qaPair[1].as<String>();
+    expectedResponse = current.answer;
     setPrimaryText(currentQuestion);  
     setFooterText("KEY IN THE ANSWER");
   }
@@ -504,5 +523,15 @@ void keypadEvent(KeypadEvent key){
     else {
       setSecondaryText("LEARNING COMPANION");
     }
+  }
+}
+
+void shuffleQAPairs(QAP objects[], int numObjects) {
+  // Shuffle the array using the Fisher-Yates algorithm
+  for (int i = numObjects - 1; i > 0; i--) {
+    int j = random(i + 1);
+    QAP temp = objects[i];
+    objects[i] = objects[j];
+    objects[j] = temp;
   }
 }
