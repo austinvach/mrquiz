@@ -1,0 +1,55 @@
+body {
+    font-family: Segoe, "Segoe UI", Verdana, sans-serif;
+    text-align: center;
+}
+
+.title {
+    margin-top: min(15vh, 200px);
+    font-size: 5em;
+    font-family: proxima-nova-condensed;
+    font-weight: 800;
+    font-style: normal;
+    margin-top: min(15vh, 200px);
+    margin-bottom: 0px;
+    line-height: 1em;
+    text-transform: uppercase;
+}
+
+.subtitle {
+    font-size: 18px;
+    margin-top: 4px;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0px;
+}
+
+a {
+    text-decoration: none;
+}
+
+li {
+    display: inline;
+    padding: 0 2px;
+}
+
+svg {
+    height: 60px;
+    width: 60px;
+}
+
+#github :hover{
+    /* Brand Guidelines: https://github.com/logos */
+    fill: #24292F;
+}
+
+#instagram :hover{
+    /* Brand Guidelines: https://about.instagram.com/brand/gradient */
+    fill: #FF0069;
+}
+
+/* #x :hover{
+    Brand Guidelines: https://about.twitter.com/en/who-we-are/brand-toolkit
+    Brand color is full black so no need to change it on hover.
+} */
