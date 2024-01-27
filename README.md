@@ -1,13 +1,13 @@
-# Electronic Learning Game
-Mr. Quiz is a DIY device similar to the original [GeoSafari](https://en.wikipedia.org/wiki/GeoSafari). It supports legacy GeoSafari content as well as brand new content that will soon be available for purchase.
+# Mr.Quiz Electronic Learning Device
+Mr.Quiz is a handheld device similar to the original [GeoSafari](https://en.wikipedia.org/wiki/GeoSafari) It supports legacy GeoSafari content as well as entirely new content coming soon.
 
 ## Project To-Dos
+- [ ] Update [Codes.h](Codes.h) to include all known GeoSafari codes and the associated Q&A pairs.
+- [ ] Store geoSafariMode state in durable memory.
+- [ ] Enable deep sleep when disconnected from power during "pretend sleep".
 - [ ] Add scoring (3 tries per question with fewer points awarded for each mistake).
 - [ ] Allow user to specify the time to respond at the start of each game (adjust sleep timer accordingly).
 - [ ] Add two player mode.
-- [ ] Store geoSafariMode state in durable memory.
-- [ ] Update [Codes.h](Codes.h) to include all known GeoSafari codes and the associated Q&A pairs.
-- [ ] Enable deep sleep when disconnected from power during "pretend sleep".
 
 ## Shopping List
 1. [T-Display Keyboard Kit](https://a.aliexpress.com/_mNxfdco)
