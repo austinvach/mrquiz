@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@vonage/vivid": "^3.49.0"
+  }
+}
