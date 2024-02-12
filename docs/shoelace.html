@@ -88,6 +88,9 @@
         sl-radio-group::part(form-control-label) {
             color: var(--sl-color-neutral-500);
         }
+        sl-input::part(form-control-label) {
+            color: var(--sl-color-neutral-500);
+        }
         sl-input::part(input) {
             text-align: center;
         }
@@ -119,7 +122,7 @@
         <sl-icon-button id="Settings" name="gear" label="Settings"></sl-icon-button>
     </header>
     <div id="middle">
-        <sl-input placeholder="Quiz Code" size="large"></sl-input>
+        <sl-input label="Quiz Code" size="large"></sl-input>
         <sl-radio-group label="Number of Players" name="players" value="1">
             <sl-radio-button value="1">1 Player</sl-radio-button>
             <sl-radio-button value="2">2 Players</sl-radio-button>
