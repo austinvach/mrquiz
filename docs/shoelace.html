@@ -12,57 +12,6 @@
     <script type="module"
         src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.13.1/cdn/shoelace-autoloader.js"></script>
         <style>
-            /* :root {
-                --docs-background-color: var(--sl-color-neutral-0);
-                --docs-border-color: var(--sl-color-neutral-200);
-                --docs-border-width: 1px;
-                --docs-border-radius: var(--sl-border-radius-medium);
-                --docs-content-max-width: 860px;
-                --docs-sidebar-width: 320px;
-                --docs-sidebar-transition-speed: 250ms;
-                --docs-content-toc-max-width: 260px;
-                --docs-content-padding: 2rem;
-                --docs-content-vertical-spacing: 2rem;
-                --docs-search-overlay-background: rgb(0 0 0 / 0.2);
-                --docs-skip-to-main-width: 200px;
-            } */
-    
-            /* Light theme */
-            /* :root {
-                color-scheme: normal;
-    
-                --sl-color-primary-50: var(--sl-color-sky-50);
-                --sl-color-primary-100: var(--sl-color-sky-100);
-                --sl-color-primary-200: var(--sl-color-sky-200);
-                --sl-color-primary-300: var(--sl-color-sky-300);
-                --sl-color-primary-400: var(--sl-color-sky-400);
-                --sl-color-primary-500: var(--sl-color-sky-500);
-                --sl-color-primary-600: var(--sl-color-sky-600);
-                --sl-color-primary-700: var(--sl-color-sky-700);
-                --sl-color-primary-800: var(--sl-color-sky-800);
-                --sl-color-primary-900: var(--sl-color-sky-900);
-                --sl-color-primary-950: var(--sl-color-sky-950);
-    
-                --docs-overlay-color: hsl(240 3.8% 46.1% / 33%);
-                --docs-shadow-x-small: 0 1px 2px hsl(240 3.8% 46.1% / 12%);
-                --docs-shadow-small: 0 1px 2px hsl(240 3.8% 46.1% / 24%);
-                --docs-shadow-medium: 0 2px 4px hsl(240 3.8% 46.1% / 24%);
-                --docs-shadow-large: 0 2px 8px hsl(240 3.8% 46.1% / 24%);
-                --docs-shadow-x-large: 0 4px 16px hsl(240 3.8% 46.1% / 24%);
-            } */
-    
-            /* Dark theme */
-            /* .sl-theme-dark {
-                color-scheme: dark;
-    
-                --docs-overlay-color: hsl(0 0% 0% / 66%);
-                --docs-shadow-x-small: 0 1px 2px rgb(0 0 0 / 36%);
-                --docs-shadow-small: 0 1px 2px rgb(0 0 0 / 48%);
-                --docs-shadow-medium: 0 2px 4px rgb(0 0 0 / 48%);
-                --docs-shadow-large: 0 2px 8px rgb(0 0 0 / 48%);
-                --docs-shadow-x-large: 0 4px 16px rgb(0 0 0 / 48%);
-            } */
-    
             html {
                 font-family: var(--sl-font-sans);
                 text-align: center;
@@ -98,6 +47,51 @@
                 margin: auto;
                 margin-top: var(--sl-spacing-small);
             }
+            sl-input {
+                margin-top: var(--sl-spacing-2x-large);
+            }
+            #code-error {
+              font-size: var(--sl-input-help-text-font-size-medium);
+              color: var(--sl-color-danger-700);
+            }
+          
+            #name-error ~ sl-button {
+              margin-top: var(--sl-spacing-medium);
+            }
+          
+            .inline-validation sl-input {
+              display: block;
+            }
+          
+            /* user invalid styles */
+            .inline-validation sl-input[data-user-invalid]::part(base) {
+              border-color: var(--sl-color-danger-600);
+            }
+          
+            .inline-validation [data-user-invalid]::part(form-control-label),
+            .inline-validation [data-user-invalid]::part(form-control-help-text) {
+              color: var(--sl-color-danger-700);
+            }
+          
+            .inline-validation sl-input:focus-within[data-user-invalid]::part(base) {
+              border-color: var(--sl-color-danger-600);
+              box-shadow: 0 0 0 var(--sl-focus-ring-width) var(--sl-color-danger-300);
+            }
+          
+            /* User valid styles */
+            .inline-validation sl-input[data-user-valid]::part(base) {
+              border-color: var(--sl-color-success-600);
+            }
+          
+            .inline-validation [data-user-valid]::part(form-control-label),
+            .inline-validation [data-user-valid]::part(form-control-help-text) {
+              color: var(--sl-color-success-700);
+            }
+          
+            .inline-validation sl-input:focus-within[data-user-valid]::part(base) {
+              border-color: var(--sl-color-success-600);
+              box-shadow: 0 0 0 var(--sl-focus-ring-width) var(--sl-color-success-300);
+            }
             sl-radio-group {
                 margin-top: var(--sl-spacing-medium);
             }
@@ -114,9 +108,6 @@
                 margin-top: var(--sl-spacing-large);
             }
             sl-icon-button::part(base) {
-                color:green;
-            }
-            sl-icon-button::part(base) {
                 color: var(--sl-color-neutral-0);
             }
             sl-icon-button::part(base):hover,
@@ -130,6 +121,7 @@
                 color: var(--sl-color-neutral-200);
             }
         </style>
+        
 </head>
 
 <body>
@@ -140,7 +132,10 @@
         </div>
     </header>
     <div id="middle">
-        <sl-input placeholder="Quiz Code" size="large"></sl-input>
+        <form class="inline-validation">
+            <sl-input name="quizCode" placeholder="Quiz Code" type="number" size="large" pattern="\d{4}" required></sl-input>
+            <div id="code-error" aria-live="polite" hidden></div>
+        </form>
         <sl-radio-group name="players" value="1">
             <sl-radio-button value="1">1 Player</sl-radio-button>
             <sl-radio-button value="2" disabled>2 Players</sl-radio-button>
@@ -157,8 +152,45 @@
     </div>
     <footer><a href="https://austinvach.com">Created by AV</a></footer>
 
-    <script>
-        const quizCodeInput = document.querySelector('sl-input');
+    <script type="module">
+        const form = document.querySelector('.inline-validation');
+        const nameError = document.querySelector('#name-error');
+      
+        // Wait for controls to be defined before attaching form listeners
+        await Promise.all([
+          customElements.whenDefined('sl-button'),
+          customElements.whenDefined('sl-input')
+        ]).then(() => {
+          // A form control is invalid
+          form.addEventListener(
+            'sl-invalid',
+            event => {
+              // Suppress the browser's constraint validation message
+              event.preventDefault();
+      
+              nameError.textContent = `Error: ${event.target.validationMessage}`;
+              nameError.hidden = false;
+      
+              event.target.focus();
+            },
+            { capture: true } // you must use capture since sl-invalid doesn't bubble!
+          );
+      
+          // Handle form submit
+          form.addEventListener('submit', event => {
+            event.preventDefault();
+            nameError.hidden = true;
+            nameError.textContent = '';
+            setTimeout(() => alert('All fields are valid'), 50);
+          });
+      
+          // Handle form reset
+          form.addEventListener('reset', event => {
+            nameError.hidden = true;
+            nameError.textContent = '';
+          });
+          const quizCodeInput = document.querySelector('sl-input');
+
         quizCodeInput.addEventListener('sl-focus', event => {
           console.log("FOCUS");
         });
@@ -166,7 +198,8 @@
           console.log("LOST FOCUS");
         });
         console.log("YOLO");
-    </script>
+        });
+      </script>
 </body>
 
 </html>
