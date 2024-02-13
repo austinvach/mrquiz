@@ -59,36 +59,36 @@
               margin-top: var(--sl-spacing-medium);
             }
           
-            .inline-validation sl-input {
+            #middle sl-input {
               display: block;
             }
           
             /* user invalid styles */
-            .inline-validation sl-input[data-user-invalid]::part(base) {
+            #middle sl-input[data-user-invalid]::part(base) {
               border-color: var(--sl-color-danger-600);
             }
           
-            .inline-validation [data-user-invalid]::part(form-control-label),
-            .inline-validation [data-user-invalid]::part(form-control-help-text) {
+            #middle [data-user-invalid]::part(form-control-label),
+            #middle [data-user-invalid]::part(form-control-help-text) {
               color: var(--sl-color-danger-700);
             }
           
-            .inline-validation sl-input:focus-within[data-user-invalid]::part(base) {
+            #middle sl-input:focus-within[data-user-invalid]::part(base) {
               border-color: var(--sl-color-danger-600);
               box-shadow: 0 0 0 var(--sl-focus-ring-width) var(--sl-color-danger-300);
             }
           
             /* User valid styles */
-            .inline-validation sl-input[data-user-valid]::part(base) {
+            #middle sl-input[data-user-valid]::part(base) {
               border-color: var(--sl-color-success-600);
             }
           
-            .inline-validation [data-user-valid]::part(form-control-label),
-            .inline-validation [data-user-valid]::part(form-control-help-text) {
+            #middle [data-user-valid]::part(form-control-label),
+            #middle [data-user-valid]::part(form-control-help-text) {
               color: var(--sl-color-success-700);
             }
           
-            .inline-validation sl-input:focus-within[data-user-valid]::part(base) {
+            #middle sl-input:focus-within[data-user-valid]::part(base) {
               border-color: var(--sl-color-success-600);
               box-shadow: 0 0 0 var(--sl-focus-ring-width) var(--sl-color-success-300);
             }
@@ -131,35 +131,35 @@
             <sl-icon-button id="settings" name="gear" label="Settings"></sl-icon-button>
         </div>
     </header>
-    <div id="middle">
-        <form class="inline-validation">
-            <sl-input name="quizCode" placeholder="Quiz Code" type="number" size="large" pattern="\d{4}" required></sl-input>
-            <div id="code-error" aria-live="polite" hidden></div>
+        <form id="middle" class="inline-validation">
+            <sl-input name="code" placeholder="Code" type="numeric" size="large" pattern="\d{4}" required></sl-input>
+            <div id="codeError" aria-live="polite" hidden></div>
+            <sl-radio-group name="players" value="1">
+                <sl-radio-button value="1">1 Player</sl-radio-button>
+                <sl-radio-button value="2" disabled>2 Players</sl-radio-button>
+            </sl-radio-group>
+            <sl-radio-group label="Seconds to Respond" name="timeToRespond" value="30">
+                <sl-radio-button value="15">15</sl-radio-button>
+                <sl-radio-button value="30">30</sl-radio-button>
+                <!-- <sl-radio-button value="45">45</sl-radio-button> -->
+                <!-- <sl-radio-button value="60">60</sl-radio-button> -->
+            </sl-radio-group>
+            <div>
+                <sl-button variant="neutral">Start</sl-button>
+            </div>
         </form>
-        <sl-radio-group name="players" value="1">
-            <sl-radio-button value="1">1 Player</sl-radio-button>
-            <sl-radio-button value="2" disabled>2 Players</sl-radio-button>
-        </sl-radio-group>
-        <sl-radio-group label="Seconds to Respond" name="timeToRespond" value="30">
-            <sl-radio-button value="15">15</sl-radio-button>
-            <sl-radio-button value="30">30</sl-radio-button>
-            <!-- <sl-radio-button value="45">45</sl-radio-button> -->
-            <!-- <sl-radio-button value="60">60</sl-radio-button> -->
-        </sl-radio-group>
-        <div>
-            <sl-button variant="neutral">Start</sl-button>
-        </div>
-    </div>
     <footer><a href="https://austinvach.com">Created by AV</a></footer>
 
     <script type="module">
-        const form = document.querySelector('.inline-validation');
-        const nameError = document.querySelector('#name-error');
+        const form = document.querySelector('#middle');
+        const nameError = document.querySelector('#codeError');
       
         // Wait for controls to be defined before attaching form listeners
         await Promise.all([
           customElements.whenDefined('sl-button'),
-          customElements.whenDefined('sl-input')
+          customElements.whenDefined('sl-input'),
+          customElements.whenDefined('sl-radio-button'),
+          customElements.whenDefined('sl-radio-group')
         ]).then(() => {
           // A form control is invalid
           form.addEventListener(
@@ -168,8 +168,8 @@
               // Suppress the browser's constraint validation message
               event.preventDefault();
       
-              nameError.textContent = `Error: ${event.target.validationMessage}`;
-              nameError.hidden = false;
+              codeError.textContent = `Error: ${event.target.validationMessage}`;
+              codeError.hidden = false;
       
               event.target.focus();
             },
@@ -179,24 +179,17 @@
           // Handle form submit
           form.addEventListener('submit', event => {
             event.preventDefault();
-            nameError.hidden = true;
-            nameError.textContent = '';
+            codeError.hidden = true;
+            codeError.textContent = '';
             setTimeout(() => alert('All fields are valid'), 50);
           });
-      
-          // Handle form reset
-          form.addEventListener('reset', event => {
-            nameError.hidden = true;
-            nameError.textContent = '';
-          });
-          const quizCodeInput = document.querySelector('sl-input');
 
-        quizCodeInput.addEventListener('sl-focus', event => {
-          console.log("FOCUS");
-        });
-        quizCodeInput.addEventListener('sl-blur', event => {
-          console.log("LOST FOCUS");
-        });
+            form.addEventListener('sl-focus', event => {
+                console.log("FOCUS");
+            });
+            form.addEventListener('sl-blur', event => {
+            console.log("LOST FOCUS");
+            });
         console.log("YOLO");
         });
       </script>
