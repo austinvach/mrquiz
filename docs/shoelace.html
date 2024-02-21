@@ -151,48 +151,55 @@
     <footer><a href="https://austinvach.com">Created by AV</a></footer>
 
     <script type="module">
-        const form = document.querySelector('#middle');
-        const nameError = document.querySelector('#codeError');
-      
-        // Wait for controls to be defined before attaching form listeners
-        await Promise.all([
-          customElements.whenDefined('sl-button'),
-          customElements.whenDefined('sl-input'),
-          customElements.whenDefined('sl-radio-button'),
-          customElements.whenDefined('sl-radio-group')
-        ]).then(() => {
-          // A form control is invalid
-          form.addEventListener(
-            'sl-invalid',
-            event => {
-              // Suppress the browser's constraint validation message
-              event.preventDefault();
-      
-              codeError.textContent = `Error: ${event.target.validationMessage}`;
-              codeError.hidden = false;
-      
-              event.target.focus();
-            },
-            { capture: true } // you must use capture since sl-invalid doesn't bubble!
-          );
-      
-          // Handle form submit
-          form.addEventListener('submit', event => {
-            event.preventDefault();
-            codeError.hidden = true;
-            codeError.textContent = '';
-            setTimeout(() => alert('All fields are valid'), 50);
-          });
+        async function setupForm() {
+            const form = document.querySelector('#middle');
+            const codeError = document.querySelector('#codeError');
+            const codeInput = form.querySelector('sl-input[name="code"]');
 
-            form.addEventListener('sl-focus', event => {
+            // Wait for controls to be defined before attaching form listeners
+            await Promise.all([
+                customElements.whenDefined('sl-button'),
+                customElements.whenDefined('sl-input'),
+                customElements.whenDefined('sl-radio-button'),
+                customElements.whenDefined('sl-radio-group')
+            ]);
+
+            // A form control is invalid
+            form.addEventListener(
+                'sl-invalid',
+                event => {
+                    // Suppress the browser's constraint validation message
+                    event.preventDefault();
+
+                    codeError.textContent = `Error: ${event.target.validationMessage}`;
+                    codeError.hidden = false;
+
+                    event.target.focus();
+                },
+                { capture: true } // you must use capture since sl-invalid doesn't bubble!
+            );
+
+            // Handle form submit
+            form.addEventListener('submit', event => {
+                event.preventDefault();
+                codeError.hidden = true;
+                codeError.textContent = '';
+                setTimeout(() => alert('All fields are valid'), 50);
+            });
+
+            codeInput.addEventListener('sl-focus', event => {
                 console.log("FOCUS");
             });
-            form.addEventListener('sl-blur', event => {
-            console.log("LOST FOCUS");
+
+            codeInput.addEventListener('sl-blur', event => {
+                console.log("LOST FOCUS");
             });
-        console.log("YOLO");
-        });
-      </script>
+
+            console.log("YOLO");
+        }
+
+        setupForm();
+    </script>
 </body>
 
 </html>
