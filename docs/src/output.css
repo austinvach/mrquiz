@@ -773,18 +773,6 @@ html {
   text-decoration-line: underline;
 }
 
-.progress {
-  position: relative;
-  width: 100%;
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
-  overflow: hidden;
-  height: 0.5rem;
-  border-radius: var(--rounded-box, 1rem);
-  background-color: var(--fallback-bc,oklch(var(--bc)/0.2));
-}
-
 @keyframes button-pop {
   0% {
     transform: scale(var(--btn-focus-scale, 0.98));
@@ -827,51 +815,6 @@ html {
   0% {
     opacity: 0;
   }
-}
-
-.progress::-moz-progress-bar {
-  border-radius: var(--rounded-box, 1rem);
-  --tw-bg-opacity: 1;
-  background-color: var(--fallback-bc,oklch(var(--bc)/var(--tw-bg-opacity)));
-}
-
-.progress:indeterminate {
-  --progress-color: var(--fallback-bc,oklch(var(--bc)/1));
-  background-image: repeating-linear-gradient(
-    90deg,
-    var(--progress-color) -1%,
-    var(--progress-color) 10%,
-    transparent 10%,
-    transparent 90%
-  );
-  background-size: 200%;
-  background-position-x: 15%;
-  animation: progress-loading 5s ease-in-out infinite;
-}
-
-.progress::-webkit-progress-bar {
-  border-radius: var(--rounded-box, 1rem);
-  background-color: transparent;
-}
-
-.progress::-webkit-progress-value {
-  border-radius: var(--rounded-box, 1rem);
-  --tw-bg-opacity: 1;
-  background-color: var(--fallback-bc,oklch(var(--bc)/var(--tw-bg-opacity)));
-}
-
-.progress:indeterminate::-moz-progress-bar {
-  background-color: transparent;
-  background-image: repeating-linear-gradient(
-    90deg,
-    var(--progress-color) -1%,
-    var(--progress-color) 10%,
-    transparent 10%,
-    transparent 90%
-  );
-  background-size: 200%;
-  background-position-x: 15%;
-  animation: progress-loading 5s ease-in-out infinite;
 }
 
 @keyframes progress-loading {
@@ -951,24 +894,16 @@ html {
   margin-top: 5rem;
 }
 
-.inline {
-  display: inline;
-}
-
 .flex {
   display: flex;
-}
-
-.h-full {
-  height: 100%;
 }
 
 .h-14 {
   height: 3.5rem;
 }
 
-.max-h-20 {
-  max-height: 5rem;
+.h-full {
+  height: 100%;
 }
 
 .max-h-32 {
@@ -1007,17 +942,12 @@ html {
   gap: 0.375rem;
 }
 
-.fill-current {
-  fill: currentColor;
-}
-
 .fill-\[\#ec008c\] {
   fill: #ec008c;
 }
 
-.px-1 {
-  padding-left: 0.25rem;
-  padding-right: 0.25rem;
+.fill-current {
+  fill: currentColor;
 }
 
 .py-4 {
@@ -1042,34 +972,6 @@ html {
   text-decoration-line: underline;
 }
 
-.decoration-blue-500 {
-  text-decoration-color: #3b82f6;
-}
-
-.decoration-green-500 {
-  text-decoration-color: #22c55e;
-}
-
-.decoration-orange-500 {
-  text-decoration-color: #f97316;
-}
-
-.decoration-dotted {
-  text-decoration-style: dotted;
-}
-
-.underline-offset-4 {
-  text-underline-offset: 4px;
-}
-
-.hover\:fill-\[\#0077B5\]:hover {
-  fill: #0077B5;
-}
-
-.hover\:fill-\[\#0866FF\]:hover {
-  fill: #0866FF;
-}
-
 .hover\:fill-\[\#222222\]:hover {
   fill: #222222;
 }
@@ -1078,44 +980,8 @@ html {
   fill: #24292F;
 }
 
-.hover\:fill-\[\#800080\]:hover {
-  fill: #800080;
-}
-
-.hover\:fill-\[\#FF0000\]:hover {
-  fill: #FF0000;
-}
-
 .hover\:fill-\[\#FF0069\]:hover {
   fill: #FF0069;
-}
-
-.hover\:fill-neutral-content:hover {
-  fill: var(--fallback-nc,oklch(var(--nc)/1));
-}
-
-.hover\:fill-base-content:hover {
-  fill: var(--fallback-bc,oklch(var(--bc)/1));
-}
-
-.hover\:fill-base-200:hover {
-  fill: var(--fallback-b2,oklch(var(--b2)/1));
-}
-
-.hover\:fill-neutral:hover {
-  fill: var(--fallback-n,oklch(var(--n)/1));
-}
-
-.hover\:fill-gray-500:hover {
-  fill: #6b7280;
-}
-
-.hover\:fill-white:hover {
-  fill: #fff;
-}
-
-.hover\:fill-red-500:hover {
-  fill: #ef4444;
 }
 
 .hover\:fill-black:hover {
