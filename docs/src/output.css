@@ -1011,6 +1011,10 @@ html {
   fill: currentColor;
 }
 
+.fill-\[\#ec008c\] {
+  fill: #ec008c;
+}
+
 .px-1 {
   padding-left: 0.25rem;
   padding-right: 0.25rem;
