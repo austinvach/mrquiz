@@ -1085,3 +1085,41 @@ html {
 .hover\:fill-\[\#FF0069\]:hover {
   fill: #FF0069;
 }
+
+.hover\:fill-neutral-content:hover {
+  fill: var(--fallback-nc,oklch(var(--nc)/1));
+}
+
+.hover\:fill-base-content:hover {
+  fill: var(--fallback-bc,oklch(var(--bc)/1));
+}
+
+.hover\:fill-base-200:hover {
+  fill: var(--fallback-b2,oklch(var(--b2)/1));
+}
+
+.hover\:fill-neutral:hover {
+  fill: var(--fallback-n,oklch(var(--n)/1));
+}
+
+.hover\:fill-gray-500:hover {
+  fill: #6b7280;
+}
+
+.hover\:fill-white:hover {
+  fill: #fff;
+}
+
+.hover\:fill-red-500:hover {
+  fill: #ef4444;
+}
+
+.hover\:fill-black:hover {
+  fill: #000;
+}
+
+@media (prefers-color-scheme: dark) {
+  .dark\:hover\:fill-white:hover {
+    fill: #fff;
+  }
+}
