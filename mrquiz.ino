@@ -28,6 +28,7 @@ bool activeGame;
 bool readyForNewQuestion;
 bool readyForNewInput;
 char key = 0;
+int attempts;
 int currentQuestionIndex;
 int totalQuestions;
 int headerTextSize = 2;
@@ -119,6 +120,7 @@ void resetVariables(){
   secondaryTextVisible = false;
   readyToPlay = false;
   activeGame = false;
+  attempts = 0;
   filter.clear();
 }
 
@@ -286,6 +288,7 @@ void startGame(){
 void showQuestionScreen(){
   // Serial.println("showQuestionScreen()");
   if(currentQuestionIndex < totalQuestions){
+    attempts = 0;
     currentScreen = "questionScreen";
     clearAllExceptBattery();
     setHeaderText("QUESTION");
@@ -465,12 +468,19 @@ void loop(){
                 currentQuestionIndex++;
               }
               else if (userInput.length() > 0){
-                setPrimaryText(userInput, TFT_RED);
-                setSecondaryText("TRY AGAIN");
-                // setFooterToClearText();
-                setFooterText("PRESS * TO CLEAR");
-                readyForNewInput = true;
-                userInput = "";
+                attempts++;
+                if (attempts < 3) {
+                  setPrimaryText(userInput, TFT_RED);
+                  setSecondaryText("TRY AGAIN");
+                  // setFooterToClearText();
+                  setFooterText("PRESS * TO CLEAR");
+                  readyForNewInput = true;
+                  userInput = "";
+                }else{
+                  setFooterText("THE ANSWER IS " + expectedResponse);
+                }
+                
+                
               }
             }
           }
