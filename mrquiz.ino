@@ -1,5 +1,6 @@
 // DISPLAY DIMENSIONS ARE 135 x 240
 #include <ArduinoJson.h>
+// SETUP INSTRUCTIONS https://www.youtube.com/watch?v=f9CnjAR_gBU
 #include <TFT_eSPI.h>
 #include <Keypad.h>
 #include "Codes.h"
@@ -14,9 +15,9 @@ String expectedResponse;
 String batteryPercentageText;
 String currentScreen;
 String currentQuestion;
-StaticJsonDocument<80> filter;
-StaticJsonDocument<200> temp;
-StaticJsonDocument<1600> doc;
+JsonDocument filter;
+JsonDocument temp;
+JsonDocument doc;
 JsonArray qaPairs;
 // Temporarily setting geoSafariMode to default to true until I can either preserve state in durable memory.
 bool geoSafariMode = true;
@@ -397,6 +398,7 @@ void setup(){
   tft.setRotation(1);
   tft.invertDisplay(true);
   updateBatteryStatus(true);
+  tft.fillScreen(TFT_BLACK);
   showStartScreen();
 }
 
@@ -490,7 +492,7 @@ void loop(){
       }
     }   
   }
-  maybeSleepDevice();
+  // maybeSleepDevice();
   updateBatteryStatus();
 }
 

@@ -4,7 +4,6 @@ Mr.Quiz is a handheld device similar to the original [GeoSafari](https://en.wiki
 ## Project To-Dos
 - [ ] Update [Codes.h](Codes.h) to include all known GeoSafari codes and the associated Q&A pairs.
 - [ ] Store geoSafariMode state in durable memory.
-- [ ] Enable deep sleep when disconnected from power during "pretend sleep".
 - [ ] Add scoring (3 tries per question with fewer points awarded for each mistake).
 - [ ] Allow user to specify the time to respond at the start of each game (adjust sleep timer accordingly).
 - [ ] Add two player mode.
@@ -24,3 +23,14 @@ Mr.Quiz is a handheld device similar to the original [GeoSafari](https://en.wiki
 ![mrquiz](https://user-images.githubusercontent.com/7928540/229888725-3ef2f42c-9a16-4bfd-ad37-2b7054d0659a.jpg)
 
 > Much of this project was based off the [LNPoS project](https://github.com/lnbits/lnpos/tree/main). Shoutout to [LNbits](https://github.com/lnbits) for the cool work they do!
+
+## Installation
+1. Install <a href="https://www.arduino.cc/en/software">Arduino IDE 1.8.19</a>
+2. Install ESP32 boards, using <a href="https://docs.espressif.com/projects/arduino-esp32/en/latest/installing.html#installing-using-boards-manager">boards manager</a>
+3. Roll back ESP32 boards to 2.0.1 in boards manager ![image](image.png)
+4. Install the ArduinoJson.h, TFT_eSPI.h, and Keypad.h libraries
+5. Download this repo
+6. Open the [mrquiz.ino](mrquiz.ino) file in the IDE
+7. Select "TTGO-LoRa32-OLED-V1" from Tools > Board
+8. Upload to device
+
