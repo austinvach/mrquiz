@@ -259,6 +259,18 @@ void setSecondaryText(String s){
   tft.print(s);
 }
 
+void setSecondaryTextWithStarKey(String s){
+  // Serial.println("setSecondaryTextWithStarKey()");
+  clearSecondaryText();
+  tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
+  tft.setCursor(0, secondaryTextYPosition);
+  tft.print("PRESS ");
+  tft.setTextColor(TFT_MAROON, TFT_BLACK);
+  tft.print("* ");
+  tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
+  tft.print("TO " + s);
+}
+
 void clearFooter(){
   // Serial.println("clearFooter()");
   tft.setTextSize(footerTextSize);
@@ -271,6 +283,30 @@ void setFooterText(String s){
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(0, footerTextYPosition);
   tft.print(s);
+}
+
+void setFooterTextWithStarKey(String s){
+  // Serial.println("setFooterTextWithStarKey()");
+  clearFooter();
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setCursor(0, footerTextYPosition);
+  tft.print("PRESS ");
+  tft.setTextColor(TFT_RED, TFT_BLACK);
+  tft.print("* ");
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.print("TO " + s);
+}
+
+void setFooterTextWithPoundKey(String s){
+  // Serial.println("setFooterTextWithPoundKey()");
+  clearFooter();
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setCursor(0, footerTextYPosition);
+  tft.print("PRESS ");
+  tft.setTextColor(TFT_GREEN, TFT_BLACK);
+  tft.print("# ");
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.print("TO " + s);
 }
 
 void clearAllExceptBattery(){
@@ -312,7 +348,7 @@ void showQuestionScreen(){
     currentScreen = "endScreen";
     clearAllExceptBattery();
     setPrimaryText("THE END");
-    setFooterText("PRESS * TO RESET"); 
+    setFooterTextWithStarKey("RESET");
   }
 }
 
@@ -341,7 +377,7 @@ void showStartScreen(){
     setSecondaryText("GEOSAFARI MODE");
   }
   else{
-    setSecondaryText("LEARNING COMPANION");
+    setSecondaryText("LEARNING TOGETHER");
   }
   setFooterText("ENTER CODE TO BEGIN");
 }
@@ -352,7 +388,7 @@ void showCodeEntryScreen(){
   setHeaderText("CODE");
   setPrimaryText("");
   setSecondaryText("");
-  setFooterText("PRESS * TO RESET");
+  setFooterTextWithStarKey("RESET");
 }
 
 void printCodeToScreen(){
@@ -366,8 +402,7 @@ void printCodeToScreen(){
       if(isCodeValid()){
         setPrimaryText(code, TFT_GREEN);
         setSecondaryText("IS VALID");
-        // setFooterToStartText();
-        setFooterText("PRESS # TO START");
+        setFooterTextWithPoundKey("START");
       }
       else {
         setPrimaryText(code, TFT_RED);
@@ -388,9 +423,9 @@ void printUserInputToScreen(){
       setHeaderText("QUESTION " + String(currentQuestionIndex + 1));
     }
     // setSecondaryToClearText();
-    setSecondaryText("PRESS * TO CLEAR");
+    setSecondaryTextWithStarKey("CLEAR");
     // setFooterToSubmitText();
-    setFooterText("PRESS # TO SUBMIT");
+    setFooterTextWithPoundKey("SUBMIT");
   }
   if(userInput.length() < 2){
     userInput = userInput + key;
@@ -466,8 +501,7 @@ void loop(){
               else if (userInput == expectedResponse){
                 setPrimaryText(userInput, TFT_GREEN);
                 setSecondaryText("THAT'S CORRECT!");
-                // setFooterToContinueText();
-                setFooterText("PRESS # TO CONTINUE");
+                setFooterTextWithPoundKey("CONTINUE");
                 readyForNewQuestion = true;
                 userInput = "";
                 currentQuestionIndex++;
@@ -478,7 +512,7 @@ void loop(){
                   setPrimaryText(userInput, TFT_RED);
                   setSecondaryText("TRY AGAIN");
                   // setFooterToClearText();
-                  setFooterText("PRESS * TO CLEAR");
+                  setFooterTextWithStarKey("CLEAR");
                   readyForNewInput = true;
                   userInput = "";
                 }else{
