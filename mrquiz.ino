@@ -75,27 +75,32 @@ void updateBatteryStatus(bool force = false){
   lastBatteryCheck = millis();
   const int batteryPercentage = getBatteryPercentage();
   batteryPercentageText = "";
-  if (batteryPercentage == USB_POWER) {
-    tft.setTextColor(TFT_GREEN, TFT_BLACK);
-    batteryPercentageText = " USB";
-
-  } else {
-    if(batteryPercentage >= 60) {
-      tft.setTextColor(TFT_GREEN, TFT_BLACK);
-    } else if (batteryPercentage >= 20) {
-      tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-    } else {
-      tft.setTextColor(TFT_RED, TFT_BLACK);
-    }
-
-    if(batteryPercentage != 100) {
-      batteryPercentageText += " ";
-      if (batteryPercentage < 10) {
-        batteryPercentageText += " ";
-      }
-    }
-    batteryPercentageText += String(batteryPercentage) + "%";
+  // START NEW BATTERY CODE
+  if(batteryPercentage < 5){
+    tft.setTextColor(TFT_RED, TFT_BLACK);
+    batteryPercentageText = " LOW";
   }
+  // END NEW BATTERY CODE
+  // if (batteryPercentage == USB_POWER) {
+  //   tft.setTextColor(TFT_GREEN, TFT_BLACK);
+  //   batteryPercentageText = " USB";
+  // } else {
+  //   if(batteryPercentage >= 60) {
+  //     tft.setTextColor(TFT_GREEN, TFT_BLACK);
+  //   } else if (batteryPercentage >= 20) {
+  //     tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+  //   } else {
+  //     tft.setTextColor(TFT_RED, TFT_BLACK);
+  //   }
+
+  //   if(batteryPercentage != 100) {
+  //     batteryPercentageText += " ";
+  //     if (batteryPercentage < 10) {
+  //       batteryPercentageText += " ";
+  //     }
+  //   }
+  //   batteryPercentageText += String(batteryPercentage) + "%";
+  // }
   tft.setTextSize(2);
   tft.setCursor(192, headerTextYPosition);
   tft.print(batteryPercentageText);
