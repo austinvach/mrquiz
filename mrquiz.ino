@@ -19,8 +19,8 @@ JsonDocument filter;
 JsonDocument temp;
 JsonDocument doc;
 JsonArray qaPairs;
-// Temporarily setting geoSafariMode to default to true until I can either preserve state in durable memory.
-bool geoSafariMode = true;
+// I need to find a way to preserve geoSafariMode state in durable memory.
+bool geoSafariMode = false;
 bool pretendSleeping;
 bool secondaryTextVisible;
 bool readyToPlay;
