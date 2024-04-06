@@ -291,9 +291,9 @@ void setFooterTextWithStarKey(String s){
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(0, footerTextYPosition);
   tft.print("PRESS ");
-  tft.setTextColor(TFT_RED, TFT_BLACK);
+  // tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.print("* ");
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  // tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.print("TO " + s);
 }
 
