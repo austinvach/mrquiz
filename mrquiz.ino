@@ -265,9 +265,9 @@ void setSecondaryTextWithStarKey(String s){
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.setCursor(0, secondaryTextYPosition);
   tft.print("PRESS ");
-  tft.setTextColor(TFT_MAROON, TFT_BLACK);
+  // tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.print("* ");
-  tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
+  // tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.print("TO " + s);
 }
 
