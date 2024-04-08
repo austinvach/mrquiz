@@ -226,7 +226,8 @@ void clearHeader(){
 void setHeaderText(String s){
   // Serial.println("setHeaderText()");
   clearHeader();
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
+  // tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(0, headerTextYPosition);
   tft.print(s);
 }
@@ -259,8 +260,8 @@ void setSecondaryText(String s){
   tft.print(s);
 }
 
-void setSecondaryTextWithStarKey(String s){
-  // Serial.println("setSecondaryTextWithStarKey()");
+void setSecondaryTextWithStarAction(String s){
+  // Serial.println("setSecondaryTextWithStarAction()");
   clearSecondaryText();
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.setCursor(0, secondaryTextYPosition);
@@ -285,8 +286,8 @@ void setFooterText(String s){
   tft.print(s);
 }
 
-void setFooterTextWithStarKey(String s){
-  // Serial.println("setFooterTextWithStarKey()");
+void setFooterTextWithStarAction(String s){
+  // Serial.println("setFooterTextWithStarAction()");
   clearFooter();
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(0, footerTextYPosition);
@@ -297,8 +298,8 @@ void setFooterTextWithStarKey(String s){
   tft.print("TO " + s);
 }
 
-void setFooterTextWithPoundKey(String s){
-  // Serial.println("setFooterTextWithPoundKey()");
+void setFooterTextWithPoundAction(String s){
+  // Serial.println("setFooterTextWithPoundAction()");
   clearFooter();
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(0, footerTextYPosition);
@@ -326,8 +327,13 @@ void startGame(){
   showQuestionScreen();
 }
 
+void playQuestionTransitionSound(){
+  Serial.println("QUESTION TRANSITION");
+}
+
 void showQuestionScreen(){
   // Serial.println("showQuestionScreen()");
+  playQuestionTransitionSound();
   if(currentQuestionIndex < totalQuestions){
     attempts = 0;
     currentScreen = "questionScreen";
@@ -345,11 +351,16 @@ void showQuestionScreen(){
     setFooterText("KEY IN THE ANSWER");
   }
   else if (currentQuestionIndex == totalQuestions){
+    playEndOfGameSound();
     currentScreen = "endScreen";
     clearAllExceptBattery();
     setPrimaryText("THE END");
-    setFooterTextWithStarKey("RESET");
+    setFooterTextWithStarAction("RESET");
   }
+}
+
+void playEndOfGameSound(){
+  Serial.println("END OF GAME");
 }
 
 void sleep(){
@@ -388,7 +399,7 @@ void showCodeEntryScreen(){
   setHeaderText("CODE");
   setPrimaryText("");
   setSecondaryText("");
-  setFooterTextWithStarKey("RESET");
+  setFooterTextWithStarAction("RESET");
 }
 
 void printCodeToScreen(){
@@ -400,11 +411,13 @@ void printCodeToScreen(){
   if (code.length() == 4){
     if(secondaryTextVisible != true){
       if(isCodeValid()){
+        playValidInputSound();
         setPrimaryText(code, TFT_GREEN);
         setSecondaryText("IS VALID");
-        setFooterTextWithPoundKey("START");
+        setFooterTextWithPoundAction("START");
       }
       else {
+        playInvalidInputSound();
         setPrimaryText(code, TFT_RED);
         setSecondaryText("IS INVALID");
       }
@@ -416,16 +429,9 @@ void printCodeToScreen(){
 void printUserInputToScreen(){
   // Serial.println("printUserInputToScreen()");
   if(userInput.length() == 0){
-    if(geoSafariMode){
-      setHeaderText("QUESTION " + currentQuestion);
-    }
-    else {
-      setHeaderText("QUESTION " + String(currentQuestionIndex + 1));
-    }
-    // setSecondaryToClearText();
-    setSecondaryTextWithStarKey("CLEAR");
-    // setFooterToSubmitText();
-    setFooterTextWithPoundKey("SUBMIT");
+    setHeaderText("QUESTION " + currentQuestion);
+    setSecondaryTextWithStarAction("CLEAR");
+    setFooterTextWithPoundAction("SUBMIT");
   }
   if(userInput.length() < 2){
     userInput = userInput + key;
@@ -443,6 +449,15 @@ void setup(){
   updateBatteryStatus(true);
   tft.fillScreen(TFT_BLACK);
   showStartScreen();
+  playStartUpSound();
+}
+
+void playStartUpSound(){
+  Serial.println("START UP");
+}
+
+void playKeyPressSound(){
+  Serial.println("KEY PRESS");
 }
 
 void loop(){
@@ -457,15 +472,8 @@ void loop(){
         keyVal = String(key);
         // Set 'timeOfLastInteraction' to current time in ms.
         timeOfLastInteraction = millis();
-        // Check if the device is sleeping.
-        if(pretendSleeping == true){
-          // If it is wake it up.
-          pretendSleeping = false;
-          updateBatteryStatus(true);
-          showStartScreen();
-        }
-        else {
-          if (key == '*'){
+        if (key == '*'){
+            playKeyPressSound();
             if (currentScreen == "codeEntryScreen"){
               resetVariables();
               showStartScreen();
@@ -499,31 +507,30 @@ void loop(){
                 showQuestionScreen();
               }
               else if (userInput == expectedResponse){
+                playCorrectAnswerSound();
                 setPrimaryText(userInput, TFT_GREEN);
                 setSecondaryText("THAT'S CORRECT!");
-                setFooterTextWithPoundKey("CONTINUE");
-                readyForNewQuestion = true;
-                userInput = "";
-                currentQuestionIndex++;
+                readyForNextQuestion();
               }
               else if (userInput.length() > 0){
+                playInvalidInputSound();
                 attempts++;
+                setPrimaryText(userInput, TFT_RED);
                 if (attempts < 3) {
-                  setPrimaryText(userInput, TFT_RED);
                   setSecondaryText("TRY AGAIN");
                   // setFooterToClearText();
-                  setFooterTextWithStarKey("CLEAR");
+                  setFooterTextWithStarAction("CLEAR");
                   readyForNewInput = true;
                   userInput = "";
                 }else{
-                  setFooterText("THE ANSWER IS " + expectedResponse);
+                  setSecondaryText("THE ANSWER IS " + expectedResponse);
+                  readyForNextQuestion();
                 }
-                
-                
               }
             }
           }
           else {
+            playKeyPressSound();
             if (currentScreen == "startScreen"){
               showCodeEntryScreen();
               printCodeToScreen();
@@ -537,12 +544,30 @@ void loop(){
               }
             }
           }
-        }
       }
     }   
   }
   // maybeSleepDevice();
   updateBatteryStatus();
+}
+
+void playCorrectAnswerSound(){
+  Serial.println("CORRECT ANSWER");
+}
+
+void playValidInputSound(){
+  Serial.println("VALID INPUT");
+}
+
+void playInvalidInputSound(){
+  Serial.println("INVALID INPUT");
+}
+
+void readyForNextQuestion(){
+  setFooterTextWithPoundAction("CONTINUE");
+  readyForNewQuestion = true;
+  userInput = "";
+  currentQuestionIndex++;
 }
 
 void playTransitionAnimation(){
