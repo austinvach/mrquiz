@@ -950,6 +950,22 @@ html {
   fill: currentColor;
 }
 
+.fill-none {
+  fill: none;
+}
+
+.stroke-current {
+  stroke: currentColor;
+}
+
+.stroke-1 {
+  stroke-width: 1;
+}
+
+.stroke-2 {
+  stroke-width: 2;
+}
+
 .py-4 {
   padding-top: 1rem;
   padding-bottom: 1rem;
