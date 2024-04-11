@@ -33,24 +33,19 @@ let displayHeight; // Since we've rotated the screen 1/4 turn the height equals 
 let displayWidth;  
 let lastBatteryCheck = 0;
 let timeOfLastInteraction = Date.now();
+const questionScreen = document.getElementById('questionScreen');
+const codeEntryScreen = document.getElementById('codeEntryScreen');
+const submitButton = document.getElementById('codeSubmit');
 const rows = 4;
 const cols = 3;
+let audio;
 
 window.onload = function() {
     document.getElementById('codeEntryInput').focus();
-
-    // Get the submit button element
-    const submitButton = document.getElementById('codeSubmit');
-
     // Add a click event listener to the submit button
+    audio = new Audio('assets/pop3.mp3');
     submitButton.addEventListener('click', function() {
-        // Get the questionScreen element
-        const questionScreen = document.getElementById('questionScreen');
-        const codeEntryScreen = document.getElementById('codeEntryScreen');
-
-        // Remove the hidden class from the questionScreen element
-        questionScreen.classList.remove('hidden');
-        codeEntryScreen.classList.add('hidden');
+        showQuestionScreen();
     });
 };
 
@@ -109,8 +104,8 @@ function isCodeValid() {
 
 function clearHeader() {
     // console.log("clearHeader()");
-    tft.setTextSize(headerTextSize);
-    tft.fillRect(0, headerTextYPosition, 180, tft.fontHeight(), "black");
+    // tft.setTextSize(headerTextSize);
+    // tft.fillRect(0, headerTextYPosition, 180, tft.fontHeight(), "black");
 }
 
 function setHeaderText(s) {
@@ -123,71 +118,71 @@ function setHeaderText(s) {
 
 function clearPrimaryText() {
     // console.log("clearPrimaryText()");
-    tft.setTextSize(primaryTextSize);
-    tft.fillRect(0, primaryTextYPosition, displayWidth, tft.fontHeight(), "black");
+    // tft.setTextSize(primaryTextSize);
+    // tft.fillRect(0, primaryTextYPosition, displayWidth, tft.fontHeight(), "black");
 }
 
 function setPrimaryText(s, c = "blue") {
     // console.log("setPrimaryText()");
     clearPrimaryText();
-    tft.setTextColor(c, "black");
-    tft.setCursor(0, primaryTextYPosition);
-    tft.print(s);
+    // tft.setTextColor(c, "black");
+    // tft.setCursor(0, primaryTextYPosition);
+    // tft.print(s);
 }
 
 function clearSecondaryText() {
     // console.log("clearSecondaryText()");
-    tft.setTextSize(secondaryTextSize);
-    tft.fillRect(0, secondaryTextYPosition, displayWidth, tft.fontHeight(), "black");
+    // tft.setTextSize(secondaryTextSize);
+    // tft.fillRect(0, secondaryTextYPosition, displayWidth, tft.fontHeight(), "black");
 }
 
 function setSecondaryText(s) {
     // console.log("setSecondaryText()");
     clearSecondaryText();
-    tft.setTextColor("darkgrey", "black");
-    tft.setCursor(0, secondaryTextYPosition);
-    tft.print(s);
+    // tft.setTextColor("darkgrey", "black");
+    // tft.setCursor(0, secondaryTextYPosition);
+    // tft.print(s);
 }
 
 function setSecondaryTextWithStarAction(s) {
     clearSecondaryText();
-    tft.setTextColor("darkgrey", "black");
-    tft.setCursor(0, secondaryTextYPosition);
-    tft.print("PRESS ");
-    tft.print("* ");
-    tft.print("TO " + s);
+    // tft.setTextColor("darkgrey", "black");
+    // tft.setCursor(0, secondaryTextYPosition);
+    // tft.print("PRESS ");
+    // tft.print("* ");
+    // tft.print("TO " + s);
 }
 
 function clearFooter() {
-    tft.setTextSize(footerTextSize);
-    tft.fillRect(0, footerTextYPosition, displayWidth, tft.fontHeight(), "black");
+    // tft.setTextSize(footerTextSize);
+    // tft.fillRect(0, footerTextYPosition, displayWidth, tft.fontHeight(), "black");
 }
 
 function setFooterText(s) {
     clearFooter();
-    tft.setTextColor("white", "black");
-    tft.setCursor(0, footerTextYPosition);
-    tft.print(s);
+    // tft.setTextColor("white", "black");
+    // tft.setCursor(0, footerTextYPosition);
+    // tft.print(s);
 }
 
 function setFooterTextWithStarAction(s) {
     clearFooter();
-    tft.setTextColor("white", "black");
-    tft.setCursor(0, footerTextYPosition);
-    tft.print("PRESS ");
-    tft.print("* ");
-    tft.print("TO " + s);
+    // tft.setTextColor("white", "black");
+    // tft.setCursor(0, footerTextYPosition);
+    // tft.print("PRESS ");
+    // tft.print("* ");
+    // tft.print("TO " + s);
 }
 
 function setFooterTextWithPoundAction(s) {
     clearFooter();
-    tft.setTextColor("white", "black");
-    tft.setCursor(0, footerTextYPosition);
-    tft.print("PRESS ");
-    tft.setTextColor("green", "black");
-    tft.print("# ");
-    tft.setTextColor("white", "black");
-    tft.print("TO " + s);
+    // tft.setTextColor("white", "black");
+    // tft.setCursor(0, footerTextYPosition);
+    // tft.print("PRESS ");
+    // tft.setTextColor("green", "black");
+    // tft.print("# ");
+    // tft.setTextColor("white", "black");
+    // tft.print("TO " + s);
 }
 
 function clearAllExceptBattery() {
@@ -207,9 +202,16 @@ function startGame() {
 
 function playQuestionTransitionSound() {
     console.log("QUESTION TRANSITION");
+    // Create a new Audio object
+    
+    // Play the audio file
+    audio.play();
 }
 
 function showQuestionScreen() {
+    // Remove the hidden class from the questionScreen element
+    questionScreen.classList.remove('hidden');
+    codeEntryScreen.classList.add('hidden');
     playQuestionTransitionSound();
     if(currentQuestionIndex < totalQuestions) {
         attempts = 0;
