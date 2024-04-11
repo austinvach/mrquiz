@@ -36,6 +36,10 @@ let timeOfLastInteraction = Date.now();
 const rows = 4;
 const cols = 3;
 
+window.onload = function() {
+    document.getElementById('codeEntryInput').focus();
+};
+
 class QAP {
     constructor() {
         this.questionNumber;
