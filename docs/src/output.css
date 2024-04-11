@@ -1728,6 +1728,14 @@ html {
   border-bottom-left-radius: 0px;
 }
 
+.m-10 {
+  margin: 2.5rem;
+}
+
+.m-6 {
+  margin: 1.5rem;
+}
+
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
@@ -1735,6 +1743,14 @@ html {
 
 .mt-3 {
   margin-top: 0.75rem;
+}
+
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
+.ml-2 {
+  margin-left: 0.5rem;
 }
 
 .flex {
@@ -1797,6 +1813,10 @@ html {
   flex-direction: column;
 }
 
+.content-center {
+  align-content: center;
+}
+
 .items-end {
   align-items: flex-end;
 }
@@ -1840,6 +1860,10 @@ html {
 
 .stroke-\[3\] {
   stroke-width: 3;
+}
+
+.p-3 {
+  padding: 0.75rem;
 }
 
 .px-2 {
