@@ -38,6 +38,20 @@ const cols = 3;
 
 window.onload = function() {
     document.getElementById('codeEntryInput').focus();
+
+    // Get the submit button element
+    const submitButton = document.getElementById('codeSubmit');
+
+    // Add a click event listener to the submit button
+    submitButton.addEventListener('click', function() {
+        // Get the questionScreen element
+        const questionScreen = document.getElementById('questionScreen');
+        const codeEntryScreen = document.getElementById('codeEntryScreen');
+
+        // Remove the hidden class from the questionScreen element
+        questionScreen.classList.remove('hidden');
+        codeEntryScreen.classList.add('hidden');
+    });
 };
 
 class QAP {
