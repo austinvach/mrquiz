@@ -11,10 +11,15 @@
 
 <body class="overflow-hidden text-center h-full flex flex-col">
     <!-- GAME BOARD -->
-    <div id="main" class="grow flex flex-col content-center justify-center">
+    <div id="main" class="grow flex flex-col content-center mx-auto justify-center">
         <div id="codeEntryScreen" class="m-4 flex">
-            <input id="codeEntryInput" type="tel" pattern="\d*" maxlength="4" placeholder="Enter Code" class="input input-bordered w-full max-w-xs"/>
-            <button id="codeSubmit" class="ml-2 btn btn-primary">Submit</button>
+            <div>
+                <input id="codeEntryInput" type="tel" pattern="\d*" maxlength="4" placeholder="Enter Code" class="input input-bordered w-full max-w-xs invalid:input-error"/>
+                <div class="label">
+                    <span id="codeEntryInputLabel" class="label-text-alt invisible"></span>
+                </div>
+            </div>
+            <button id="codeSubmit" class="ml-2 btn btn-primary" disabled>Submit</button>
         </div>
         <div id="questionScreen" class="m-4 flex hidden">
             HELLO

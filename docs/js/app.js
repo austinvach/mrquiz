@@ -33,9 +33,11 @@ let displayHeight; // Since we've rotated the screen 1/4 turn the height equals 
 let displayWidth;  
 let lastBatteryCheck = 0;
 let timeOfLastInteraction = Date.now();
-const questionScreen = document.getElementById('questionScreen');
 const codeEntryScreen = document.getElementById('codeEntryScreen');
+const codeEntryInput = document.getElementById('codeEntryInput');
 const submitButton = document.getElementById('codeSubmit');
+const questionScreen = document.getElementById('questionScreen');
+const codeEntryInputLabel = document.getElementById('codeEntryInputLabel');
 const rows = 4;
 const cols = 3;
 let audio;
@@ -48,6 +50,29 @@ window.onload = function() {
         showQuestionScreen();
     });
 };
+
+// Define an array of acceptable values
+var acceptableValues = ['1234', '2345', '3456', '4567'];
+
+// Get the input field element
+
+
+// Add an input event listener to the input field
+codeEntryInput.addEventListener('input', function() {
+    // Get the value of the input field
+    var inputValue = codeEntryInput.value;
+    codeEntryInput.classList.remove('input-success');
+    codeEntryInput.classList.remove('input-error');
+    codeEntryInputLabel.classList.add('invisible');
+    // Check if the input value is in the array of acceptable values
+    if (inputValue.length === 4) {
+        acceptableValues.includes(inputValue) ? codeEntryInput.classList.add('input-success') : codeEntryInput.classList.add('input-error');
+        acceptableValues.includes(inputValue) ? codeEntryInput.classList.add('input-success') : codeEntryInputLabel.classList.add('input-error');
+        codeEntryInputLabel.textContent = acceptableValues.includes(inputValue) ? 'VALID CODE!' : 'TRY AGAIN';
+        codeEntryInputLabel.classList.remove('invisible');
+        acceptableValues.includes(inputValue) ? codeSubmit.disabled = false : codeSubmit.disabled = true;
+    }
+});
 
 class QAP {
     constructor() {
