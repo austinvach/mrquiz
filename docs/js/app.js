@@ -51,11 +51,14 @@ window.onload = function() {
     });
 };
 
-// Define an array of acceptable values
-var acceptableValues = ['1234', '2345', '3456', '4567'];
-
-// Get the input field element
-
+// Fetch and parse the JSON file of valid codes
+fetch('./codes.json')
+    .then(response => response.json())
+    .then(data => {
+        acceptableValues = Object.keys(data);
+        console.log(acceptableValues);
+    })
+    .catch(error => console.error('Error fetching codes.json:', error));
 
 // Add an input event listener to the input field
 codeEntryInput.addEventListener('input', function() {
