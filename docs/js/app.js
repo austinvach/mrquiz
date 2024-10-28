@@ -66,14 +66,25 @@ codeEntryInput.addEventListener('input', function() {
     var inputValue = codeEntryInput.value;
     codeEntryInput.classList.remove('input-success');
     codeEntryInput.classList.remove('input-error');
+    codeSubmit.classList.remove('btn-success');
+    codeSubmit.disabled = true;
     codeEntryInputLabel.classList.add('invisible');
     // Check if the input value is in the array of acceptable values
     if (inputValue.length === 4) {
-        acceptableValues.includes(inputValue) ? codeEntryInput.classList.add('input-success') : codeEntryInput.classList.add('input-error');
-        acceptableValues.includes(inputValue) ? codeEntryInput.classList.add('input-success') : codeEntryInputLabel.classList.add('input-error');
-        codeEntryInputLabel.textContent = acceptableValues.includes(inputValue) ? 'VALID CODE!' : 'TRY AGAIN';
-        codeEntryInputLabel.classList.remove('invisible');
-        acceptableValues.includes(inputValue) ? codeSubmit.disabled = false : codeSubmit.disabled = true;
+        if (acceptableValues.includes(inputValue)) {
+            codeEntryInput.classList.add('input-success')
+            // codeEntryInputLabel.classList.add('text-success');
+            codeEntryInputLabel.textContent = 'Press SUBMIT to Begin';
+            codeEntryInputLabel.classList.remove('invisible');
+            codeSubmit.disabled = false;
+            codeSubmit.classList.add('btn-success');
+        } else {
+            codeEntryInput.classList.add('input-error')
+            // codeEntryInputLabel.classList.add('text-error');
+            codeEntryInputLabel.textContent = 'TRY AGAIN';
+            codeSubmit.disabled = true;
+            codeSubmit.classList.remove('btn-success');
+        }
     }
 });
 
