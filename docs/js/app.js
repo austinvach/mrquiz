@@ -48,6 +48,7 @@ window.onload = function() {
     audio = new Audio('assets/pop3.mp3');
     submitButton.addEventListener('click', function() {
         showQuestionScreen();
+        printQAPairs();
     });
 };
 
@@ -78,6 +79,8 @@ codeEntryInput.addEventListener('input', function() {
             codeEntryInputLabel.classList.remove('invisible');
             codeSubmit.disabled = false;
             codeSubmit.classList.add('btn-success');
+            submitButton.focus();
+
         } else {
             codeEntryInput.classList.add('input-error')
             // codeEntryInputLabel.classList.add('text-error');
@@ -494,6 +497,20 @@ function keypadEvent(key) {
             setSecondaryText("LEARNING COMPANION");
         }
     }
+}
+
+function printQAPairs() {
+        const code = document.getElementById('codeEntryInput').value;
+        fetch('codes.json')
+            .then(response => response.json())
+            .then(data => {
+                if (data[code]) {
+                    console.log('Q&A Pairs:', data[code]);
+                } else {
+                    console.log('Invalid code');
+                }
+            })
+            .catch(error => console.error('Error fetching codes:', error));
 }
 
 function shuffleQAPairs(objects, numObjects) {
