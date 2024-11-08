@@ -45,6 +45,7 @@ let audio;
 window.onload = function() {
     document.getElementById('codeEntryInput').focus();
     // Add a click event listener to the submit button
+    audioPop = new Audio('assets/pop3.mp3');
     audio = new Audio('assets/pop3.mp3');
     submitButton.addEventListener('click', function() {
         showQuestionScreen();
@@ -57,7 +58,7 @@ fetch('./codes.json')
     .then(response => response.json())
     .then(data => {
         acceptableValues = Object.keys(data);
-        console.log(acceptableValues);
+        console.log("Acceptable Values:", acceptableValues);
     })
     .catch(error => console.error('Error fetching codes.json:', error));
 
@@ -79,7 +80,7 @@ codeEntryInput.addEventListener('input', function() {
             codeEntryInputLabel.classList.remove('invisible');
             codeSubmit.disabled = false;
             codeSubmit.classList.add('btn-success');
-            submitButton.focus();
+            // submitButton.focus();
 
         } else {
             codeEntryInput.classList.add('input-error')
@@ -88,6 +89,14 @@ codeEntryInput.addEventListener('input', function() {
             codeSubmit.disabled = true;
             codeSubmit.classList.remove('btn-success');
         }
+    }
+});
+
+// Prevent codeEntryInput from losing focus
+document.addEventListener('mousedown', function(event) {
+    if (event.target !== codeEntryInput) {
+        event.preventDefault();
+        codeEntryInput.focus();
     }
 });
 
@@ -243,11 +252,7 @@ function startGame() {
 }
 
 function playQuestionTransitionSound() {
-    console.log("QUESTION TRANSITION");
-    // Create a new Audio object
-    
-    // Play the audio file
-    audio.play();
+    audioPop.play();
 }
 
 function showQuestionScreen() {
@@ -371,86 +376,6 @@ function playKeyPressSound() {
     console.log("KEY PRESS");
 }
 
-function loop() {
-    // Check if keys have been pressed
-    if (keypad.getKeys()) {
-        // Scan the whole key list.
-        for (let i = 0; i < LIST_MAX; i++) {
-            // Find the keys whose state has changed to PRESSED.
-            if (keypad.key[i].stateChanged && keypad.key[i].kstate === PRESSED) {
-                // Set 'key' variable to the value of the key that was pressed.
-                key = keypad.key[i].kchar;
-                keyVal = String(key);
-                // Set 'timeOfLastInteraction' to current time in ms.
-                timeOfLastInteraction = Date.now();
-                if (key === '*') {
-                    playKeyPressSound();
-                    if (currentScreen === "codeEntryScreen") {
-                        resetVariables();
-                        showStartScreen();
-                    } else if (currentScreen === "questionScreen") {
-                        if (readyForNewInput) {
-                            readyForNewInput = false;
-                        }
-                        if (!readyForNewQuestion) {
-                            userInput = "";
-                            setHeaderText("QUESTION");
-                            setPrimaryText(currentQuestion);
-                            setSecondaryText("");
-                            setFooterText("KEY IN THE ANSWER");
-                        }
-                    } else if (currentScreen === "endScreen") {
-                        resetVariables();
-                        clearAllExceptBattery();
-                        playTransitionAnimation();
-                        showStartScreen();
-                    }
-                } else if (key === '#') {
-                    if (currentScreen === "codeEntryScreen" && readyToPlay) {
-                        startGame();
-                    } else if (currentScreen === "questionScreen") {
-                        if (readyForNewQuestion) {
-                            readyForNewQuestion = false;
-                            showQuestionScreen();
-                        } else if (userInput === expectedResponse) {
-                            playCorrectAnswerSound();
-                            setPrimaryText(userInput, "green");
-                            setSecondaryText("THAT'S CORRECT!");
-                            readyForNextQuestion();
-                        } else if (userInput.length > 0) {
-                            playInvalidInputSound();
-                            attempts++;
-                            setPrimaryText(userInput, "red");
-                            if (attempts < 3) {
-                                setSecondaryText("TRY AGAIN");
-                                setFooterTextWithStarAction("CLEAR");
-                                readyForNewInput = true;
-                                userInput = "";
-                            } else {
-                                setSecondaryText("THE ANSWER IS " + expectedResponse);
-                                readyForNextQuestion();
-                            }
-                        }
-                    }
-                } else {
-                    playKeyPressSound();
-                    if (currentScreen === "startScreen") {
-                        showCodeEntryScreen();
-                        printCodeToScreen();
-                    } else if (currentScreen === "codeEntryScreen") {
-                        printCodeToScreen();
-                    } else if (currentScreen === "questionScreen") {
-                        if (!readyForNewQuestion && !readyForNewInput) {
-                            printUserInputToScreen();
-                        }
-                    }
-                }
-            }
-        }
-    }
-    updateBatteryStatus();
-}
-
 function playCorrectAnswerSound() {
     console.log("CORRECT ANSWER");
 }
@@ -522,3 +447,77 @@ function shuffleQAPairs(objects, numObjects) {
         objects[j] = temp;
     }
 }
+
+// Function to handle the submit button click
+function handleSubmitButtonClick() {
+    printQAPairs();
+}
+
+// Add event listener to the submit button
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter' && codeSubmit.classList.contains('btn-success')) {
+        document.getElementById('codeSubmit').click();
+    }
+    // else if (key === '*') {
+    //     playKeyPressSound();
+    //     if (currentScreen === "codeEntryScreen") {
+    //         resetVariables();
+    //         showStartScreen();
+    //     } else if (currentScreen === "questionScreen") {
+    //         if (readyForNewInput) {
+    //             readyForNewInput = false;
+    //         }
+    //         if (!readyForNewQuestion) {
+    //             userInput = "";
+    //             setHeaderText("QUESTION");
+    //             setPrimaryText(currentQuestion);
+    //             setSecondaryText("");
+    //             setFooterText("KEY IN THE ANSWER");
+    //         }
+    //     } else if (currentScreen === "endScreen") {
+    //         resetVariables();
+    //         clearAllExceptBattery();
+    //         playTransitionAnimation();
+    //         showStartScreen();
+    //     }
+    // } else if (key === '#') {
+    //     if (currentScreen === "codeEntryScreen" && readyToPlay) {
+    //         startGame();
+    //     } else if (currentScreen === "questionScreen") {
+    //         if (readyForNewQuestion) {
+    //             readyForNewQuestion = false;
+    //             showQuestionScreen();
+    //         } else if (userInput === expectedResponse) {
+    //             playCorrectAnswerSound();
+    //             setPrimaryText(userInput, "green");
+    //             setSecondaryText("THAT'S CORRECT!");
+    //             readyForNextQuestion();
+    //         } else if (userInput.length > 0) {
+    //             playInvalidInputSound();
+    //             attempts++;
+    //             setPrimaryText(userInput, "red");
+    //             if (attempts < 3) {
+    //                 setSecondaryText("TRY AGAIN");
+    //                 setFooterTextWithStarAction("CLEAR");
+    //                 readyForNewInput = true;
+    //                 userInput = "";
+    //             } else {
+    //                 setSecondaryText("THE ANSWER IS " + expectedResponse);
+    //                 readyForNextQuestion();
+    //             }
+    //         }
+    //     }
+    // } else {
+    //     playKeyPressSound();
+    //     if (currentScreen === "startScreen") {
+    //         showCodeEntryScreen();
+    //         printCodeToScreen();
+    //     } else if (currentScreen === "codeEntryScreen") {
+    //         printCodeToScreen();
+    //     } else if (currentScreen === "questionScreen") {
+    //         if (!readyForNewQuestion && !readyForNewInput) {
+    //             printUserInputToScreen();
+    //         }
+    //     }
+    // }
+});
