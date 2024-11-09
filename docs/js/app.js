@@ -53,14 +53,6 @@ window.onload = function() {
     });
 };
 
-// Fetch and parse the JSON file of valid codes
-fetch('./codes.json')
-    .then(response => response.json())
-    .then(data => {
-        acceptableValues = Object.keys(data);
-        console.log("Acceptable Values:", acceptableValues);
-    })
-    .catch(error => console.error('Error fetching codes.json:', error));
 
 // Add an input event listener to the input field
 codeEntryInput.addEventListener('input', function() {
@@ -71,24 +63,25 @@ codeEntryInput.addEventListener('input', function() {
     codeSubmit.classList.remove('btn-success');
     codeSubmit.disabled = true;
     codeEntryInputLabel.classList.add('invisible');
-    // Check if the input value is in the array of acceptable values
+    // Check if the input value is in the array of valid codes
     if (inputValue.length === 4) {
-        if (acceptableValues.includes(inputValue)) {
-            codeEntryInput.classList.add('input-success')
-            // codeEntryInputLabel.classList.add('text-success');
-            codeEntryInputLabel.textContent = 'Press SUBMIT to Begin';
-            codeEntryInputLabel.classList.remove('invisible');
-            codeSubmit.disabled = false;
-            codeSubmit.classList.add('btn-success');
-            // submitButton.focus();
+        isCodeValid();
+        // if (validCodes.includes(inputValue)) {
+        //     codeEntryInput.classList.add('input-success')
+        //     // codeEntryInputLabel.classList.add('text-success');
+        //     codeEntryInputLabel.textContent = 'Press SUBMIT to Begin';
+        //     codeEntryInputLabel.classList.remove('invisible');
+        //     codeSubmit.disabled = false;
+        //     codeSubmit.classList.add('btn-success');
+        //     // submitButton.focus();
 
-        } else {
-            codeEntryInput.classList.add('input-error')
-            // codeEntryInputLabel.classList.add('text-error');
-            codeEntryInputLabel.textContent = 'TRY AGAIN';
-            codeSubmit.disabled = true;
-            codeSubmit.classList.remove('btn-success');
-        }
+        // } else {
+        //     codeEntryInput.classList.add('input-error')
+        //     // codeEntryInputLabel.classList.add('text-error');
+        //     codeEntryInputLabel.textContent = 'TRY AGAIN';
+        //     codeSubmit.disabled = true;
+        //     codeSubmit.classList.remove('btn-success');
+        // }
     }
 });
 
@@ -121,20 +114,18 @@ function resetVariables() {
 }
 
 function isCodeValid() {
-    // console.log("isCodeValid()");
-    filter[code] = true;
-    // Deserialize the JSON document,
-    let error = false;
-    try {
-        doc = JSON.parse(codes, (key, value) => {
-            if (filter[key]) {
-                return value;
-            }
-        });
-    } catch (e) {
-        console.log(`JSON.parse() failed: ${e}`);
-        error = true;
-    }
+    console.log("isCodeValid()");
+    // Fetch and parse the JSON file of valid codes
+    fetch('./codes.json')
+        .then(response => response.json())
+        .then(data => {
+            validCodes = Object.keys(data);
+            console.log("Valid Codes:", validCodes);
+        })
+        .catch(error => console.error('Error fetching codes.json:', error));
+
+
+
     qaPairs = doc[code];
     if (qaPairs) {
         let numObjects = qaPairs.length;
