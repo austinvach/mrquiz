@@ -10,7 +10,6 @@ let doc = {}; // JSON object
 let qaPairs = []; // JSON array
 
 // I need to find a way to preserve geoSafariMode state in durable memory.
-let inBrowser = false;
 let geoSafariMode = false;
 let secondaryTextVisible = false;
 let readyToPlay = false;
@@ -53,7 +52,6 @@ window.onload = function() {
     // Add a click event listener to the submit button
     audioPop = new Audio('assets/pop3.mp3');
     audio = new Audio('assets/pop3.mp3');
-    inBrowser = true;
     fetchCodes();
     submitButton.addEventListener('click', function() {
         showQuestionScreen();
@@ -110,7 +108,7 @@ class QuestionAnswerPair {
 let objects = Array(26).fill().map(() => new QuestionAnswerPair());
 
 function resetVariables() {
-    // console.log("resetVariables()");
+    console.log("resetVariables()");
     code = "";
     secondaryTextVisible = false;
     readyToPlay = false;
@@ -122,25 +120,17 @@ function resetVariables() {
 function isCodeValid(inputValue) {
     console.log("isCodeValid()");
     // Fetch and parse the JSON file of valid codes
-    if(inBrowser) {
-        if (validCodes.includes(inputValue)) {
-            codeEntryInput.classList.add('input-success')
-            // codeEntryInputLabel.classList.add('text-success');
-            codeEntryInputLabel.textContent = 'Press SUBMIT to Begin';
-            codeEntryInputLabel.classList.remove('invisible');
-            codeSubmit.disabled = false;
-            codeSubmit.classList.add('btn-success');
-            // submitButton.focus();
-
-        } else {
-            codeEntryInput.classList.add('input-error')
-            // codeEntryInputLabel.classList.add('text-error');
-            codeEntryInputLabel.textContent = 'TRY AGAIN';
-            codeSubmit.disabled = true;
-            codeSubmit.classList.remove('btn-success');
-        }
+    if (validCodes.includes(inputValue)) {
+        codeEntryInput.classList.add('input-success')
+        codeEntryInputLabel.textContent = 'Press SUBMIT to Begin';
+        codeEntryInputLabel.classList.remove('invisible');
+        codeSubmit.disabled = false;
+        codeSubmit.classList.add('btn-success');
     } else {
-        qaPairs = doc[code];
+        codeEntryInput.classList.add('input-error')
+        codeEntryInputLabel.textContent = 'TRY AGAIN';
+        codeSubmit.disabled = true;
+        codeSubmit.classList.remove('btn-success');
     }
     
     if (qaPairs) {
@@ -161,13 +151,13 @@ function isCodeValid(inputValue) {
 }
 
 function clearHeader() {
-    // console.log("clearHeader()");
+    console.log("clearHeader()");
     // tft.setTextSize(headerTextSize);
     // tft.fillRect(0, headerTextYPosition, 180, tft.fontHeight(), "black");
 }
 
 function setHeaderText(s) {
-    // console.log("setHeaderText()");
+    console.log("setHeaderText()");
     clearHeader();
     tft.setTextColor("darkgrey", "black");
     tft.setCursor(0, headerTextYPosition);
@@ -175,13 +165,13 @@ function setHeaderText(s) {
 }
 
 function clearPrimaryText() {
-    // console.log("clearPrimaryText()");
+    console.log("clearPrimaryText()");
     // tft.setTextSize(primaryTextSize);
     // tft.fillRect(0, primaryTextYPosition, displayWidth, tft.fontHeight(), "black");
 }
 
 function setPrimaryText(s, c = "blue") {
-    // console.log("setPrimaryText()");
+    console.log("setPrimaryText()");
     clearPrimaryText();
     // tft.setTextColor(c, "black");
     // tft.setCursor(0, primaryTextYPosition);
@@ -189,13 +179,13 @@ function setPrimaryText(s, c = "blue") {
 }
 
 function clearSecondaryText() {
-    // console.log("clearSecondaryText()");
+    console.log("clearSecondaryText()");
     // tft.setTextSize(secondaryTextSize);
     // tft.fillRect(0, secondaryTextYPosition, displayWidth, tft.fontHeight(), "black");
 }
 
 function setSecondaryText(s) {
-    // console.log("setSecondaryText()");
+    console.log("setSecondaryText()");
     clearSecondaryText();
     // tft.setTextColor("darkgrey", "black");
     // tft.setCursor(0, secondaryTextYPosition);
@@ -212,11 +202,13 @@ function setSecondaryTextWithStarAction(s) {
 }
 
 function clearFooter() {
+    console.log("clearFooter()");
     // tft.setTextSize(footerTextSize);
     // tft.fillRect(0, footerTextYPosition, displayWidth, tft.fontHeight(), "black");
 }
 
 function setFooterText(s) {
+    console.log("setFooterText()");
     clearFooter();
     // tft.setTextColor("white", "black");
     // tft.setCursor(0, footerTextYPosition);
@@ -224,6 +216,7 @@ function setFooterText(s) {
 }
 
 function setFooterTextWithStarAction(s) {
+    console.log("setFooterTextWithStarAction()");
     clearFooter();
     // tft.setTextColor("white", "black");
     // tft.setCursor(0, footerTextYPosition);
@@ -233,6 +226,7 @@ function setFooterTextWithStarAction(s) {
 }
 
 function setFooterTextWithPoundAction(s) {
+    console.log("setFooterTextWithPoundAction()");
     clearFooter();
     // tft.setTextColor("white", "black");
     // tft.setCursor(0, footerTextYPosition);
@@ -244,6 +238,7 @@ function setFooterTextWithPoundAction(s) {
 }
 
 function clearAllExceptBattery() {
+    console.log("clearAllExceptBattery()");
     clearHeader();
     clearPrimaryText();
     clearSecondaryText();
@@ -251,6 +246,7 @@ function clearAllExceptBattery() {
 }
 
 function startGame() {
+    console.log("startGame()");
     activeGame = true;
     currentQuestionIndex = 0;
     totalQuestions = qaPairs.length;
@@ -259,10 +255,12 @@ function startGame() {
 }
 
 function playQuestionTransitionSound() {
+    console.log("playQuestionTransitionSound()");
     audioPop.play();
 }
 
 function showQuestionScreen() {
+    console.log("showQuestionScreen()");
     // Remove the hidden class from the questionScreen element
     questionScreen.classList.remove('hidden');
     codeEntryScreen.classList.add('hidden');
@@ -291,10 +289,11 @@ function showQuestionScreen() {
 }
 
 function playEndOfGameSound() {
-    console.log("END OF GAME");
+    console.log("playEndOfGameSound()");
 }
 
 function sleep() {
+    console.log("sleep()");
     tft.fillScreen("black");
     tft.setTextSize(5);
     tft.setTextColor("darkgrey", "black");
@@ -310,6 +309,7 @@ function sleep() {
 }
 
 function showStartScreen() {
+    console.log("showStartScreen()");
     currentScreen = "startScreen";
     setHeaderText("");
     setPrimaryText("MR.QUIZ");
@@ -322,6 +322,7 @@ function showStartScreen() {
 }
 
 function showCodeEntryScreen() {
+    console.log("showCodeEntryScreen()");
     currentScreen = "codeEntryScreen";
     setHeaderText("CODE");
     setPrimaryText("");
@@ -330,6 +331,7 @@ function showCodeEntryScreen() {
 }
 
 function printCodeToScreen() {
+    console.log("printCodeToScreen()");
     if(code.length < 4) {
         code = code + key;
         setPrimaryText(code, "white");
@@ -352,6 +354,7 @@ function printCodeToScreen() {
 }
 
 function printUserInputToScreen() {
+    console.log("printUserInputToScreen()");
     if(userInput.length === 0) {
         setHeaderText("QUESTION " + currentQuestion);
         setSecondaryTextWithStarAction("CLEAR");
@@ -376,26 +379,27 @@ function setup() {
 }
 
 function playStartUpSound() {
-    console.log("START UP");
+    console.log("playStartUpSound()");
 }
 
 function playKeyPressSound() {
-    console.log("KEY PRESS");
+    console.log("playKeyPressSound()");
 }
 
 function playCorrectAnswerSound() {
-    console.log("CORRECT ANSWER");
+    console.log("playCorrectAnswerSound()");
 }
 
 function playValidInputSound() {
-    console.log("VALID INPUT");
+    console.log("playValidInputSound()");
 }
 
 function playInvalidInputSound() {
-    console.log("INVALID INPUT");
+    console.log("playInvalidInputSound()");
 }
 
 function readyForNextQuestion() {
+    console.log("readyForNextQuestion()");
     setFooterTextWithPoundAction("CONTINUE");
     readyForNewQuestion = true;
     userInput = "";
@@ -403,6 +407,7 @@ function readyForNextQuestion() {
 }
 
 function playTransitionAnimation() {
+    console.log("playTransitionAnimation()");
     clearAllExceptBattery();
     tft.setTextSize(5);
     tft.setTextColor("blue", "black");
@@ -432,6 +437,7 @@ function keypadEvent(key) {
 }
 
 function printQAPairs() {
+    console.log("printQAPairs()");
         const code = document.getElementById('codeEntryInput').value;
         fetch('codes.json')
             .then(response => response.json())
@@ -447,6 +453,7 @@ function printQAPairs() {
 }
 
 function shuffleQAPairs(objects, numObjects) {
+    console.log("shuffleQAPairs()");
     // Shuffle the array using the Fisher-Yates algorithm
     for (let i = numObjects - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
@@ -458,6 +465,7 @@ function shuffleQAPairs(objects, numObjects) {
 
 // Function to handle the submit button click
 function handleSubmitButtonClick() {
+    console.log("handleSubmitButtonClick()");
     printQAPairs();
 }
 
