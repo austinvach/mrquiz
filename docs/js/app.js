@@ -10,6 +10,7 @@ let doc = {}; // JSON object
 let qaPairs = []; // JSON array
 
 // I need to find a way to preserve geoSafariMode state in durable memory.
+let inBrowser = false;
 let geoSafariMode = false;
 let secondaryTextVisible = false;
 let readyToPlay = false;
@@ -33,6 +34,7 @@ let displayHeight; // Since we've rotated the screen 1/4 turn the height equals 
 let displayWidth;  
 let lastBatteryCheck = 0;
 let timeOfLastInteraction = Date.now();
+let validCodes = [];
 const codeEntryScreen = document.getElementById('codeEntryScreen');
 const codeEntryInput = document.getElementById('codeEntryInput');
 const submitButton = document.getElementById('codeSubmit');
@@ -42,17 +44,22 @@ const rows = 4;
 const cols = 3;
 let audio;
 
+//////////////////////////
+// BROWSER SPECIFIC CODE
+//////////////////////////
+
 window.onload = function() {
     document.getElementById('codeEntryInput').focus();
     // Add a click event listener to the submit button
     audioPop = new Audio('assets/pop3.mp3');
     audio = new Audio('assets/pop3.mp3');
+    inBrowser = true;
+    fetchCodes();
     submitButton.addEventListener('click', function() {
         showQuestionScreen();
         printQAPairs();
     });
 };
-
 
 // Add an input event listener to the input field
 codeEntryInput.addEventListener('input', function() {
@@ -65,23 +72,7 @@ codeEntryInput.addEventListener('input', function() {
     codeEntryInputLabel.classList.add('invisible');
     // Check if the input value is in the array of valid codes
     if (inputValue.length === 4) {
-        isCodeValid();
-        // if (validCodes.includes(inputValue)) {
-        //     codeEntryInput.classList.add('input-success')
-        //     // codeEntryInputLabel.classList.add('text-success');
-        //     codeEntryInputLabel.textContent = 'Press SUBMIT to Begin';
-        //     codeEntryInputLabel.classList.remove('invisible');
-        //     codeSubmit.disabled = false;
-        //     codeSubmit.classList.add('btn-success');
-        //     // submitButton.focus();
-
-        // } else {
-        //     codeEntryInput.classList.add('input-error')
-        //     // codeEntryInputLabel.classList.add('text-error');
-        //     codeEntryInputLabel.textContent = 'TRY AGAIN';
-        //     codeSubmit.disabled = true;
-        //     codeSubmit.classList.remove('btn-success');
-        // }
+        isCodeValid(inputValue);
     }
 });
 
@@ -93,7 +84,22 @@ document.addEventListener('mousedown', function(event) {
     }
 });
 
-class QAP {
+function fetchCodes() {
+    console.log("fetchCodes()");
+    fetch('codes.json')
+        .then(response => response.json())
+        .then(data => {
+            validCodes = Object.keys(data);
+            console.log('Valid Codes:', validCodes);
+        })
+        .catch(error => console.error('Error fetching codes:', error));
+}
+
+//////////////////////////
+// SHARED GAME CODE
+//////////////////////////
+
+class QuestionAnswerPair {
     constructor() {
         this.questionNumber;
         this.geoSafariNumber;
@@ -101,7 +107,7 @@ class QAP {
     }
 }
 
-let objects = Array(26).fill().map(() => new QAP());
+let objects = Array(26).fill().map(() => new QuestionAnswerPair());
 
 function resetVariables() {
     // console.log("resetVariables()");
@@ -113,24 +119,34 @@ function resetVariables() {
     filter = {};
 }
 
-function isCodeValid() {
+function isCodeValid(inputValue) {
     console.log("isCodeValid()");
     // Fetch and parse the JSON file of valid codes
-    fetch('./codes.json')
-        .then(response => response.json())
-        .then(data => {
-            validCodes = Object.keys(data);
-            console.log("Valid Codes:", validCodes);
-        })
-        .catch(error => console.error('Error fetching codes.json:', error));
+    if(inBrowser) {
+        if (validCodes.includes(inputValue)) {
+            codeEntryInput.classList.add('input-success')
+            // codeEntryInputLabel.classList.add('text-success');
+            codeEntryInputLabel.textContent = 'Press SUBMIT to Begin';
+            codeEntryInputLabel.classList.remove('invisible');
+            codeSubmit.disabled = false;
+            codeSubmit.classList.add('btn-success');
+            // submitButton.focus();
 
-
-
-    qaPairs = doc[code];
+        } else {
+            codeEntryInput.classList.add('input-error')
+            // codeEntryInputLabel.classList.add('text-error');
+            codeEntryInputLabel.textContent = 'TRY AGAIN';
+            codeSubmit.disabled = true;
+            codeSubmit.classList.remove('btn-success');
+        }
+    } else {
+        qaPairs = doc[code];
+    }
+    
     if (qaPairs) {
         let numObjects = qaPairs.length;
         for (let i = 0; i < numObjects; i++) {
-            let newObj = new QAP();
+            let newObj = new QuestionAnswerPair();
             newObj.questionNumber = i + 1;
             newObj.geoSafariNumber = qaPairs[i][0];
             newObj.answer = qaPairs[i][1];
@@ -421,7 +437,8 @@ function printQAPairs() {
             .then(response => response.json())
             .then(data => {
                 if (data[code]) {
-                    console.log('Q&A Pairs:', data[code]);
+                    qaPairs = data[code];
+                    console.log('Q&A Pairs:', qaPairs);
                 } else {
                     console.log('Invalid code');
                 }
