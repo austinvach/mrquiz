@@ -16,69 +16,44 @@ let readyToPlay = false;
 let activeGame = false;
 let readyForNewQuestion = false;
 let readyForNewInput = false;
-let key = 0;
+let inputAlert = false;
 let attempts;
 let currentQuestionIndex;
 let totalQuestions;
-let headerTextSize = 2;
-let headerTextYPosition = 10;
-let primaryTextSize = 5;
-let primaryTextYPosition = 40;
-let secondaryTextSize = 2;
-let secondaryTextYPosition = 88;
-let footerTextSize = 2;
-let footerTextYPosition = 116;
-let sleepTimer = 60; // Time in seconds before the device goes to sleep
-let displayHeight; // Since we've rotated the screen 1/4 turn the height equals the width and visa versa
-let displayWidth;  
-let lastBatteryCheck = 0;
-let timeOfLastInteraction = Date.now();
 let validCodes = [];
-const codeEntryScreen = document.getElementById('codeEntryScreen');
-const codeEntryInput = document.getElementById('codeEntryInput');
-const submitButton = document.getElementById('codeSubmit');
+const inputElement = document.getElementById('inputElement');
+const submitButton = document.getElementById('submitButton');
 const questionScreen = document.getElementById('questionScreen');
-const codeEntryInputLabel = document.getElementById('codeEntryInputLabel');
-const rows = 4;
-const cols = 3;
+const inputLabel = document.getElementById('inputLabel');
 let audio;
 
-//////////////////////////
-// BROWSER SPECIFIC CODE
-//////////////////////////
+class QuestionAnswerPair {
+    constructor() {
+        this.questionNumber;
+        this.geoSafariNumber;
+        this.answer;
+    }
+}
 
 window.onload = function() {
-    document.getElementById('codeEntryInput').focus();
-    // Add a click event listener to the submit button
-    audioPop = new Audio('assets/pop3.mp3');
-    audio = new Audio('assets/pop3.mp3');
+    console.log("onload()");
     fetchCodes();
-    submitButton.addEventListener('click', function() {
-        showQuestionScreen();
-        printQAPairs();
+    initializeAudio();
+    loadStartScreen();
+    document.addEventListener('keydown', function(event) {
+        handleKeyPress(event.key);
     });
+    inputElement.addEventListener('input', function() {
+        validateInput(inputElement.value);
+    })
+    inputElement.focus();
 };
 
-// Add an input event listener to the input field
-codeEntryInput.addEventListener('input', function() {
-    // Get the value of the input field
-    var inputValue = codeEntryInput.value;
-    codeEntryInput.classList.remove('input-success');
-    codeEntryInput.classList.remove('input-error');
-    codeSubmit.classList.remove('btn-success');
-    codeSubmit.disabled = true;
-    codeEntryInputLabel.classList.add('invisible');
-    // Check if the input value is in the array of valid codes
-    if (inputValue.length === 4) {
-        isCodeValid(inputValue);
-    }
-});
-
-// Prevent codeEntryInput from losing focus
+// Prevent inputElement from losing focus
 document.addEventListener('mousedown', function(event) {
-    if (event.target !== codeEntryInput) {
+    if (event.target !== inputElement) {
         event.preventDefault();
-        codeEntryInput.focus();
+        inputElement.focus();
     }
 });
 
@@ -93,16 +68,35 @@ function fetchCodes() {
         .catch(error => console.error('Error fetching codes:', error));
 }
 
-//////////////////////////
-// SHARED GAME CODE
-//////////////////////////
+function initializeAudio() {
+    console.log("initializeAudio()");
+    audioPop = new Audio('assets/pop3.mp3');
+    audio = new Audio('assets/pop3.mp3');
+}
 
-class QuestionAnswerPair {
-    constructor() {
-        this.questionNumber;
-        this.geoSafariNumber;
-        this.answer;
+function validateInput(inputValue) {
+    console.log("validateInput()");
+    if (currentScreen === "startScreen") {
+        if (inputValue.length < 4 && inputAlert) {
+            resetView();
+        } else if (inputValue.length === 4) {
+            isCodeValid(inputValue);
+        }
     }
+}
+
+function resetView() {
+    console.log("resetView()");
+    inputElement.classList.remove('input-success');
+    inputElement.classList.remove('input-error');
+    submitButton.classList.remove('btn-success');
+    submitButton.disabled = true;
+    inputLabel.classList.add('invisible');
+    if (currentScreen === "startScreen") {
+        setPrimaryText("ENTER CODE TO BEGIN");
+    }
+    
+    inputAlert = false;
 }
 
 let objects = Array(26).fill().map(() => new QuestionAnswerPair());
@@ -117,132 +111,34 @@ function resetVariables() {
     filter = {};
 }
 
-function isCodeValid(inputValue) {
+function isCodeValid(code) {
     console.log("isCodeValid()");
-    // Fetch and parse the JSON file of valid codes
-    if (validCodes.includes(inputValue)) {
-        codeEntryInput.classList.add('input-success')
-        codeEntryInputLabel.textContent = 'Press SUBMIT to Begin';
-        codeEntryInputLabel.classList.remove('invisible');
-        codeSubmit.disabled = false;
-        codeSubmit.classList.add('btn-success');
+    if (validCodes.includes(code)) {
+        inputElement.classList.add('input-success')
+        inputLabel.textContent = 'Press SUBMIT to Begin';
+        inputLabel.classList.remove('invisible');
+        submitButton.disabled = false;
+        submitButton.classList.add('btn-success');
+        fetchQAPairs(code); 
     } else {
-        codeEntryInput.classList.add('input-error')
-        codeEntryInputLabel.textContent = 'TRY AGAIN';
-        codeSubmit.disabled = true;
-        codeSubmit.classList.remove('btn-success');
+        inputElement.classList.add('input-error')
+        inputLabel.textContent = 'TRY AGAIN';
+        submitButton.disabled = true;
+        submitButton.classList.remove('btn-success');
     }
-    
-    if (qaPairs) {
-        let numObjects = qaPairs.length;
-        for (let i = 0; i < numObjects; i++) {
-            let newObj = new QuestionAnswerPair();
-            newObj.questionNumber = i + 1;
-            newObj.geoSafariNumber = qaPairs[i][0];
-            newObj.answer = qaPairs[i][1];
-            objects[i] = newObj;
-        }
-        // Shuffle the array of objects
-        shuffleQAPairs(objects, numObjects);
-        readyToPlay = true;
-        return true;
-    }
-    return false;
-}
-
-function clearHeader() {
-    console.log("clearHeader()");
-    // tft.setTextSize(headerTextSize);
-    // tft.fillRect(0, headerTextYPosition, 180, tft.fontHeight(), "black");
-}
-
-function setHeaderText(s) {
-    console.log("setHeaderText()");
-    clearHeader();
-    tft.setTextColor("darkgrey", "black");
-    tft.setCursor(0, headerTextYPosition);
-    tft.print(s);
-}
-
-function clearPrimaryText() {
-    console.log("clearPrimaryText()");
-    // tft.setTextSize(primaryTextSize);
-    // tft.fillRect(0, primaryTextYPosition, displayWidth, tft.fontHeight(), "black");
+    inputAlert = true;
 }
 
 function setPrimaryText(s, c = "blue") {
     console.log("setPrimaryText()");
-    clearPrimaryText();
-    // tft.setTextColor(c, "black");
-    // tft.setCursor(0, primaryTextYPosition);
-    // tft.print(s);
+    const primaryText = document.getElementById('primaryText');
+    primaryText.textContent = s;
 }
 
-function clearSecondaryText() {
-    console.log("clearSecondaryText()");
-    // tft.setTextSize(secondaryTextSize);
-    // tft.fillRect(0, secondaryTextYPosition, displayWidth, tft.fontHeight(), "black");
-}
-
-function setSecondaryText(s) {
-    console.log("setSecondaryText()");
-    clearSecondaryText();
-    // tft.setTextColor("darkgrey", "black");
-    // tft.setCursor(0, secondaryTextYPosition);
-    // tft.print(s);
-}
-
-function setSecondaryTextWithStarAction(s) {
-    clearSecondaryText();
-    // tft.setTextColor("darkgrey", "black");
-    // tft.setCursor(0, secondaryTextYPosition);
-    // tft.print("PRESS ");
-    // tft.print("* ");
-    // tft.print("TO " + s);
-}
-
-function clearFooter() {
-    console.log("clearFooter()");
-    // tft.setTextSize(footerTextSize);
-    // tft.fillRect(0, footerTextYPosition, displayWidth, tft.fontHeight(), "black");
-}
-
-function setFooterText(s) {
-    console.log("setFooterText()");
-    clearFooter();
-    // tft.setTextColor("white", "black");
-    // tft.setCursor(0, footerTextYPosition);
-    // tft.print(s);
-}
-
-function setFooterTextWithStarAction(s) {
-    console.log("setFooterTextWithStarAction()");
-    clearFooter();
-    // tft.setTextColor("white", "black");
-    // tft.setCursor(0, footerTextYPosition);
-    // tft.print("PRESS ");
-    // tft.print("* ");
-    // tft.print("TO " + s);
-}
-
-function setFooterTextWithPoundAction(s) {
-    console.log("setFooterTextWithPoundAction()");
-    clearFooter();
-    // tft.setTextColor("white", "black");
-    // tft.setCursor(0, footerTextYPosition);
-    // tft.print("PRESS ");
-    // tft.setTextColor("green", "black");
-    // tft.print("# ");
-    // tft.setTextColor("white", "black");
-    // tft.print("TO " + s);
-}
-
-function clearAllExceptBattery() {
-    console.log("clearAllExceptBattery()");
-    clearHeader();
-    clearPrimaryText();
-    clearSecondaryText();
-    clearFooter();
+function setInputLabel(s) {
+    console.log("setInputLabel()");
+    const inputLabel = document.getElementById('inputLabel');
+    inputLabel.textContent = s;
 }
 
 function startGame() {
@@ -250,26 +146,18 @@ function startGame() {
     activeGame = true;
     currentQuestionIndex = 0;
     totalQuestions = qaPairs.length;
-    playTransitionAnimation();
+    // playTransitionAnimation();
     showQuestionScreen();
-}
-
-function playQuestionTransitionSound() {
-    console.log("playQuestionTransitionSound()");
-    audioPop.play();
 }
 
 function showQuestionScreen() {
     console.log("showQuestionScreen()");
     // Remove the hidden class from the questionScreen element
-    questionScreen.classList.remove('hidden');
-    codeEntryScreen.classList.add('hidden');
     playQuestionTransitionSound();
     if(currentQuestionIndex < totalQuestions) {
         attempts = 0;
         currentScreen = "questionScreen";
-        clearAllExceptBattery();
-        setHeaderText("QUESTION");
+        // setHeaderText("QUESTION");
         let current = objects[currentQuestionIndex];
         if(geoSafariMode) {
             currentQuestion = current.geoSafariNumber;
@@ -277,20 +165,18 @@ function showQuestionScreen() {
             currentQuestion = current.questionNumber;
         }
         expectedResponse = current.answer;
-        setPrimaryText(currentQuestion);  
-        setFooterText("KEY IN THE ANSWER");
+        setPrimaryText("QUESTION", currentQuestion);
+        setInputLabel("KEY IN THE ANSWER");  
+        // setFooterText("KEY IN THE ANSWER");
     } else if (currentQuestionIndex === totalQuestions) {
         playEndOfGameSound();
         currentScreen = "endScreen";
-        clearAllExceptBattery();
         setPrimaryText("THE END");
         setFooterTextWithStarAction("RESET");
     }
 }
 
-function playEndOfGameSound() {
-    console.log("playEndOfGameSound()");
-}
+
 
 function sleep() {
     console.log("sleep()");
@@ -305,48 +191,46 @@ function sleep() {
         delay(250);
         i++;
     }
-    clearPrimaryText();
 }
 
-function showStartScreen() {
-    console.log("showStartScreen()");
+function loadStartScreen() {
+    console.log("loadStartScreen()");
+    playStartUpSound();
     currentScreen = "startScreen";
-    setHeaderText("");
-    setPrimaryText("MR.QUIZ");
+    setPrimaryText("ENTER CODE TO BEGIN");
     if(geoSafariMode === true) {
-        setSecondaryText("GEOSAFARI MODE");
-    } else {
-        setSecondaryText("LEARNING TOGETHER");
+        setInputLabel("GEOSAFARI MODE");
     }
-    setFooterText("ENTER CODE TO BEGIN");
-}
-
-function showCodeEntryScreen() {
-    console.log("showCodeEntryScreen()");
-    currentScreen = "codeEntryScreen";
-    setHeaderText("CODE");
-    setPrimaryText("");
-    setSecondaryText("");
-    setFooterTextWithStarAction("RESET");
 }
 
 function printCodeToScreen() {
     console.log("printCodeToScreen()");
+    code = inputElement.value;
+    // inputElement.classList.remove('input-success');
+    // inputElement.classList.remove('input-error');
+    // submitButton.classList.remove('btn-success');
+    // submitButton.disabled = true;
+    // inputLabel.classList.add('invisible');
+    // // Check if the input value is in the array of valid codes
+    // if (inputValue.length === 4) {
+    //     isCodeValid();
+    // }
+
     if(code.length < 4) {
-        code = code + key;
-        setPrimaryText(code, "white");
+        console.log("Code: " + code);
+        // setPrimaryText(code, "white");
     }
     if (code.length === 4) {
+        console.log("Code: " + code);
         if(secondaryTextVisible !== true) {
             if(isCodeValid()) {
                 playValidInputSound();
-                setPrimaryText(code, "green");
-                setSecondaryText("IS VALID");
-                setFooterTextWithPoundAction("START");
+                setPrimaryText("WAHOO!");
+                setInputLabel("PRESS SUBMIT TO BEGIN");
             } else {
                 playInvalidInputSound();
                 setPrimaryText(code, "red");
-                setSecondaryText("IS INVALID");
+                setSecondaryText("THAT CODE IS INVALID. TRY AGAIN");
             }
             secondaryTextVisible = true;
         }
@@ -356,7 +240,8 @@ function printCodeToScreen() {
 function printUserInputToScreen() {
     console.log("printUserInputToScreen()");
     if(userInput.length === 0) {
-        setHeaderText("QUESTION " + currentQuestion);
+        setPrimaryText("QUESTION " + currentQuestion);
+        // setHeaderText("QUESTION " + currentQuestion);
         setSecondaryTextWithStarAction("CLEAR");
         setFooterTextWithPoundAction("SUBMIT");
     }
@@ -366,16 +251,148 @@ function printUserInputToScreen() {
     }
 }
 
-function setup() {
-    console.log("setup()");
-    keypad.addEventListener('keypress', keypadEvent); // Add an event listener for this keypad
-    tft.init();
-    tft.setRotation(1);
-    tft.invertDisplay(true);
-    updateBatteryStatus(true);
-    tft.fillScreen("black");
-    showStartScreen();
-    playStartUpSound();
+function readyForNextQuestion() {
+    console.log("readyForNextQuestion()");
+    setFooterTextWithPoundAction("CONTINUE");
+    readyForNewQuestion = true;
+    userInput = "";
+    currentQuestionIndex++;
+}
+
+function playTransitionAnimation() {
+    console.log("playTransitionAnimation()");
+}
+
+function keypadEvent(key) {
+    if (keypad.getState() === HOLD && key === '*' && currentScreen !== "startScreen") {
+        resetVariables();
+        playTransitionAnimation();
+        loadStartScreen();
+    }
+    if (keypad.getState() === HOLD && key === '#' && currentScreen === "startScreen") {
+        geoSafariMode = !geoSafariMode;
+        if (geoSafariMode === true) {
+            setSecondaryText("GEOSAFARI MODE");
+        } else {
+            setSecondaryText("LEARNING COMPANION");
+        }
+    }
+}
+
+function fetchQAPairs(code) {
+    console.log("fetchQAPairs()");
+    fetch('codes.json')
+        .then(response => response.json())
+        .then(data => {
+            if (data[code]) {
+                qaPairs = data[code];
+                let numObjects = qaPairs.length;
+            for (let i = 0; i < numObjects; i++) {
+                let newObj = new QuestionAnswerPair();
+                newObj.questionNumber = i + 1;
+                newObj.geoSafariNumber = qaPairs[i][0];
+                newObj.answer = qaPairs[i][1];
+                objects[i] = newObj;
+            }
+            // Shuffle the array of objects
+            shuffleQAPairs(objects, numObjects);
+            readyToPlay = true;
+            setPrimaryText("READY TO PLAY");
+            } else {
+                console.log('No Q&A Pairs found for code:', code);
+            }
+        })
+        .catch(error => console.error('Error fetching codes:', error));
+}
+
+function shuffleQAPairs(objects, numObjects) {
+    console.log("shuffleQAPairs()");
+    // Shuffle the array using the Fisher-Yates algorithm
+    for (let i = numObjects - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        let temp = objects[i];
+        objects[i] = objects[j];
+        objects[j] = temp;   
+    }
+}
+
+function handleKeyPress(key) {
+    console.log("handleKeyPress()");
+    if (key === 'Enter') {
+        if(currentScreen === "codeEntryScreen" && submitButton.classList.contains('btn-success')) {
+            startGame();
+            printQAPairs();
+        } else if (currentScreen === "startScreen") {
+            showCodeEntryScreen();
+        }
+    }
+    else if (key === '*') {
+        // playKeyPressSound();
+        if (currentScreen === "codeEntryScreen") {
+            resetVariables();
+            loadStartScreen();
+        } else if (currentScreen === "questionScreen") {
+            if (readyForNewInput) {
+                readyForNewInput = false;
+            }
+            if (!readyForNewQuestion) {
+                userInput = "";
+                // setHeaderText("QUESTION");
+                setPrimaryText("QUESTION", currentQuestion);
+                setInputLabel("KEY IN THE ANSWER");
+                // setSecondaryText("");
+                // setFooterText("KEY IN THE ANSWER");
+            }
+        } else if (currentScreen === "endScreen") {
+            resetVariables();
+            playTransitionAnimation();
+            loadStartScreen();
+        }
+    }
+    else if (key === '#') {
+        if (currentScreen === "codeEntryScreen" && readyToPlay) {
+            startGame();
+        } else if (currentScreen === "questionScreen") {
+            if (readyForNewQuestion) {
+                readyForNewQuestion = false;
+                showQuestionScreen();
+            } else if (userInput === expectedResponse) {
+                playCorrectAnswerSound();
+                setPrimaryText(userInput, "green");
+                setInputLabel("THAT'S CORRECT!");
+                // setSecondaryText("THAT'S CORRECT!");
+                readyForNextQuestion();
+            } else if (userInput.length > 0) {
+                playInvalidInputSound();
+                attempts++;
+                setPrimaryText(userInput, "red");
+                if (attempts < 3) {
+                    setInputLabel("TRY AGAIN");
+                    // setSecondaryText("TRY AGAIN");
+                    setFooterTextWithStarAction("CLEAR");
+                    readyForNewInput = true;
+                    userInput = "";
+                } else {
+                    setInputLabel("THE ANSWER IS " + expectedResponse);
+                    // setSecondaryText("THE ANSWER IS " + expectedResponse);
+                    readyForNextQuestion();
+                }
+            }
+        }
+    }
+}
+
+///////////////////////////
+// SOUNDS
+///////////////////////////
+
+function playQuestionTransitionSound() {
+    console.log("playQuestionTransitionSound()");
+    audioPop.play();
+}
+
+function playEndOfGameSound() {
+    console.log("playEndOfGameSound()");
 }
 
 function playStartUpSound() {
@@ -384,6 +401,7 @@ function playStartUpSound() {
 
 function playKeyPressSound() {
     console.log("playKeyPressSound()");
+    // audioPop.play();
 }
 
 function playCorrectAnswerSound() {
@@ -398,142 +416,3 @@ function playInvalidInputSound() {
     console.log("playInvalidInputSound()");
 }
 
-function readyForNextQuestion() {
-    console.log("readyForNextQuestion()");
-    setFooterTextWithPoundAction("CONTINUE");
-    readyForNewQuestion = true;
-    userInput = "";
-    currentQuestionIndex++;
-}
-
-function playTransitionAnimation() {
-    console.log("playTransitionAnimation()");
-    clearAllExceptBattery();
-    tft.setTextSize(5);
-    tft.setTextColor("blue", "black");
-    tft.setCursor(0, primaryTextYPosition);
-    let i = 0;
-    while (i < 8) {
-        tft.print("#");
-        setTimeout(() => {}, 40);
-        i++;
-    }
-}
-
-function keypadEvent(key) {
-    if (keypad.getState() === HOLD && key === '*' && currentScreen !== "startScreen") {
-        resetVariables();
-        playTransitionAnimation();
-        showStartScreen();
-    }
-    if (keypad.getState() === HOLD && key === '#' && currentScreen === "startScreen") {
-        geoSafariMode = !geoSafariMode;
-        if (geoSafariMode === true) {
-            setSecondaryText("GEOSAFARI MODE");
-        } else {
-            setSecondaryText("LEARNING COMPANION");
-        }
-    }
-}
-
-function printQAPairs() {
-    console.log("printQAPairs()");
-        const code = document.getElementById('codeEntryInput').value;
-        fetch('codes.json')
-            .then(response => response.json())
-            .then(data => {
-                if (data[code]) {
-                    qaPairs = data[code];
-                    console.log('Q&A Pairs:', qaPairs);
-                } else {
-                    console.log('Invalid code');
-                }
-            })
-            .catch(error => console.error('Error fetching codes:', error));
-}
-
-function shuffleQAPairs(objects, numObjects) {
-    console.log("shuffleQAPairs()");
-    // Shuffle the array using the Fisher-Yates algorithm
-    for (let i = numObjects - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        let temp = objects[i];
-        objects[i] = objects[j];
-        objects[j] = temp;
-    }
-}
-
-// Function to handle the submit button click
-function handleSubmitButtonClick() {
-    console.log("handleSubmitButtonClick()");
-    printQAPairs();
-}
-
-// Add event listener to the submit button
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Enter' && codeSubmit.classList.contains('btn-success')) {
-        document.getElementById('codeSubmit').click();
-    }
-    // else if (key === '*') {
-    //     playKeyPressSound();
-    //     if (currentScreen === "codeEntryScreen") {
-    //         resetVariables();
-    //         showStartScreen();
-    //     } else if (currentScreen === "questionScreen") {
-    //         if (readyForNewInput) {
-    //             readyForNewInput = false;
-    //         }
-    //         if (!readyForNewQuestion) {
-    //             userInput = "";
-    //             setHeaderText("QUESTION");
-    //             setPrimaryText(currentQuestion);
-    //             setSecondaryText("");
-    //             setFooterText("KEY IN THE ANSWER");
-    //         }
-    //     } else if (currentScreen === "endScreen") {
-    //         resetVariables();
-    //         clearAllExceptBattery();
-    //         playTransitionAnimation();
-    //         showStartScreen();
-    //     }
-    // } else if (key === '#') {
-    //     if (currentScreen === "codeEntryScreen" && readyToPlay) {
-    //         startGame();
-    //     } else if (currentScreen === "questionScreen") {
-    //         if (readyForNewQuestion) {
-    //             readyForNewQuestion = false;
-    //             showQuestionScreen();
-    //         } else if (userInput === expectedResponse) {
-    //             playCorrectAnswerSound();
-    //             setPrimaryText(userInput, "green");
-    //             setSecondaryText("THAT'S CORRECT!");
-    //             readyForNextQuestion();
-    //         } else if (userInput.length > 0) {
-    //             playInvalidInputSound();
-    //             attempts++;
-    //             setPrimaryText(userInput, "red");
-    //             if (attempts < 3) {
-    //                 setSecondaryText("TRY AGAIN");
-    //                 setFooterTextWithStarAction("CLEAR");
-    //                 readyForNewInput = true;
-    //                 userInput = "";
-    //             } else {
-    //                 setSecondaryText("THE ANSWER IS " + expectedResponse);
-    //                 readyForNextQuestion();
-    //             }
-    //         }
-    //     }
-    // } else {
-    //     playKeyPressSound();
-    //     if (currentScreen === "startScreen") {
-    //         showCodeEntryScreen();
-    //         printCodeToScreen();
-    //     } else if (currentScreen === "codeEntryScreen") {
-    //         printCodeToScreen();
-    //     } else if (currentScreen === "questionScreen") {
-    //         if (!readyForNewQuestion && !readyForNewInput) {
-    //             printUserInputToScreen();
-    //         }
-    //     }
-    // }
-});

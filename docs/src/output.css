@@ -740,12 +740,6 @@ html {
   --tw-backdrop-sepia:  ;
 }
 
-.avatar.placeholder > div {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 @media (hover:hover) {
   .label a:hover {
     --tw-text-opacity: 1;
@@ -1327,28 +1321,24 @@ html {
   margin-bottom: 1.25rem;
 }
 
-.ml-0 {
-  margin-left: 0px;
-}
-
-.mt-2 {
-  margin-top: 0.5rem;
-}
-
-.mt-20 {
-  margin-top: 5rem;
+.mb-8 {
+  margin-bottom: 2rem;
 }
 
 .ml-2 {
   margin-left: 0.5rem;
 }
 
-.flex {
-  display: flex;
+.mt-20 {
+  margin-top: 5rem;
 }
 
-.hidden {
-  display: none;
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.flex {
+  display: flex;
 }
 
 .h-14 {
@@ -1363,10 +1353,6 @@ html {
   height: 100vh;
 }
 
-.max-h-12 {
-  max-height: 3rem;
-}
-
 .max-h-32 {
   max-height: 8rem;
 }
@@ -1377,6 +1363,10 @@ html {
 
 .w-full {
   width: 100%;
+}
+
+.w-auto {
+  width: auto;
 }
 
 .max-w-xs {
@@ -1401,10 +1391,6 @@ html {
 
 .items-end {
   align-items: flex-end;
-}
-
-.items-center {
-  align-items: center;
 }
 
 .justify-center {
@@ -1435,16 +1421,8 @@ html {
   stroke: currentColor;
 }
 
-.stroke-neutral-content {
-  stroke: var(--fallback-nc,oklch(var(--nc)/1));
-}
-
 .stroke-2 {
   stroke-width: 2;
-}
-
-.stroke-\[3\] {
-  stroke-width: 3;
 }
 
 .py-4 {
@@ -1459,6 +1437,16 @@ html {
 .text-lg {
   font-size: 1.125rem;
   line-height: 1.75rem;
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
 }
 
 .text-current {
@@ -1514,20 +1502,6 @@ html {
 .focus\:outline-none:focus {
   outline: 2px solid transparent;
   outline-offset: 2px;
-}
-
-@media (min-width: 768px) {
-  .md\:ml-2 {
-    margin-left: 0.5rem;
-  }
-
-  .md\:mt-0 {
-    margin-top: 0px;
-  }
-
-  .md\:flex-row {
-    flex-direction: row;
-  }
 }
 
 @media (prefers-color-scheme: dark) {

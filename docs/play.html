@@ -6,23 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="src/output.css" rel="stylesheet">
     <link rel="icon" type="image/png" href="assets/favicon.png" sizes="any">
-    <title>Mr.Quiz</title>
+    <title>Mr.Quiz | Stay Curious</title>
 </head>
 
 <body class="overflow-hidden text-center h-full flex flex-col">
     <!-- GAME BOARD -->
     <div id="main" class="grow flex flex-col content-center mx-auto justify-center">
-        <div id="codeEntryScreen" class="m-4 flex flex-col md:flex-row">
+        <div class="m-4">
+            <div id="primaryText" class="mb-2"></div>
             <div>
-                <input id="codeEntryInput" type="tel" pattern="\d*" maxlength="4" placeholder="Enter Code" class="focus:outline-none focus-within:outline-none input input-bordered w-full max-w-xs invalid:input-error"/>
-                <div class="label">
-                    <span id="codeEntryInputLabel" class="label-text-alt invisible">PLACEHOLDER</span>
-                </div>
+                <input id="inputElement" type="tel" pattern="\d*" maxlength="4" class="text-center focus:outline-none focus-within:outline-none input input-bordered w-full max-w-xs text-3xl invalid:input-error"/>
+                <div id="inputLabel" class="label mx-auto label-text-alt invisible">PLACEHOLDER</div>
             </div>
-            <button id="codeSubmit" class="ml-2 btn" disabled>Submit</button>
-        </div>
-        <div id="questionScreen" class="m-4 flex hidden">
-            HELLO
+            <button id="submitButton" class="ml-2 btn" disabled>Submit</button>
         </div>
     </div>
     <footer id="footer" class="py-4">
