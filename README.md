@@ -25,12 +25,12 @@ Mr.Quiz is a handheld device similar to the original [GeoSafari](https://en.wiki
 > Much of this project was based off the [LNPoS project](https://github.com/lnbits/lnpos/tree/main). Shoutout to [LNbits](https://github.com/lnbits) for the cool work they do!
 
 ## Installation
-1. Install <a href="https://www.arduino.cc/en/software">Arduino IDE 1.8.19</a>
-2. Install ESP32 boards, using <a href="https://docs.espressif.com/projects/arduino-esp32/en/latest/installing.html#installing-using-boards-manager">boards manager</a>
-3. Roll back ESP32 boards to 2.0.1 in boards manager ![image](image.png)
-4. Install the ArduinoJson.h, TFT_eSPI.h, and Keypad.h libraries
+1. Install <a href="https://www.arduino.cc/en/software">Arduino IDE</a> (latest tested version 2.3.6)
+2. Install ESP32 boards, using <a href="https://docs.espressif.com/projects/arduino-esp32/en/latest/installing.html#installing-using-boards-manager">boards manager</a> (latest tested version is 3.3.0)
+4. Install the ArduinoJson.h (7.4.2), TFT_eSPI.h (2.5.43), and Keypad.h (3.1.1) libraries
+5. Navigate to the TFT_eSPI folder wherever Arduino stores library files (on Windows is Documents/Arduino/libraries), open User_Setup_Select.h, comment out #include <User_Setup.h>, and uncomment #include <User_Setups/Setup25_TTGO_T_Display.h>
 5. Download this repo
-6. Open the [mrquiz.ino](mrquiz.ino) file in the IDE
-7. Select "TTGO-LoRa32-OLED-V1" from Tools > Board
+6. Open the [mrquiz.ino](mrquiz.ino) file in the Ardunio IDE
+7. Select "TTGO-LoRa32-OLED" from Tools > Board
 8. Upload to device
 

@@ -1,6 +1,6 @@
 // DISPLAY DIMENSIONS ARE 135 x 240
 #include <ArduinoJson.h>
-// SETUP INSTRUCTIONS https://www.youtube.com/watch?v=f9CnjAR_gBU
+// SETUP INSTRUCTIONS https://www.youtube.com/watch?v=f9CnjAR_gBU, https://www.youtube.com/watch?v=b8254--ibmM
 #include <TFT_eSPI.h>
 #include <Keypad.h>
 #include "Codes.h"
@@ -20,6 +20,7 @@ JsonDocument temp;
 JsonDocument doc;
 JsonArray qaPairs;
 // I need to find a way to preserve geoSafariMode state in durable memory.
+const int BUZZ_PIN    = 17;  // safe, PWM-capable pin
 bool geoSafariMode = false;
 bool pretendSleeping;
 bool secondaryTextVisible;
@@ -422,20 +423,30 @@ void setup(){
   // Serial.println("setup()");
   keypad.addEventListener(keypadEvent); // Add an event listener for this keypad
   tft.init();
-  tft.setRotation(1);
+  tft.setRotation(3); // ORIENTATION 1 is readable when oriented with the usb-c to the right or the screen
   tft.invertDisplay(true);
   updateBatteryStatus(true);
   tft.fillScreen(TFT_BLACK);
+  pinMode(BUZZ_PIN, OUTPUT);
   showStartScreen();
   playStartUpSound();
 }
 
 void playStartUpSound(){
-  Serial.println("START UP");
+  // Play a simple startup jingle using the piezo speaker
+  int melody[] = {262, 330, 392, 523}; // C4, E4, G4, C5 (frequencies in Hz)
+  int durations[] = {100, 100, 100, 400}; // Duration of each note in ms
+  for (int i = 0; i < 4; i++) {
+    tone(BUZZ_PIN, melody[i], durations[i]);
+    delay(durations[i] + 10); // Short pause between notes
+  }
+  noTone(BUZZ_PIN); // Ensure the buzzer is off after the jingle
 }
 
 void playKeyPressSound(){
-  Serial.println("KEY PRESS");
+  // digitalWrite(BUZZ_PIN, HIGH); // ON
+  // delay(200);
+  // digitalWrite(BUZZ_PIN, LOW);  // OFF
 }
 
 void loop(){
