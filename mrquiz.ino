@@ -391,15 +391,15 @@ void printCodeToScreen(){
   if (code.length() == 4){
     if(secondaryTextVisible != true){
       if(isCodeValid()){
-        playValidInputSound();
         setPrimaryText(code, TFT_GREEN);
         setSecondaryText("IS VALID");
         setFooterTextWithPoundAction("START");
+        playValidInputSound();
       }
       else {
-        playInvalidInputSound();
         setPrimaryText(code, TFT_RED);
         setSecondaryText("IS INVALID");
+        playInvalidInputSound();
       }
       secondaryTextVisible = true;
     }
@@ -551,7 +551,14 @@ void playCorrectAnswerSound(){
 }
 
 void playValidInputSound(){
-  Serial.println("VALID INPUT");
+   // Play A4, D4, E4, and F#4 in sequence
+  int melody[] = {523, 659}; // C4, E5
+  int durations[] = {120, 200}; // Duration of each note in ms
+  for (int i = 0; i < 2; i++) {
+    tone(BUZZ_PIN, melody[i], durations[i]);
+    delay(durations[i] + 10); // Short pause between notes
+  }
+  noTone(BUZZ_PIN); // Ensure the buzzer is off after the jingle
 }
 
 void playInvalidInputSound(){
