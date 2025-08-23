@@ -370,6 +370,7 @@ void showStartScreen(){
     setSecondaryText("LEARNING TOGETHER");
   }
   setFooterText("ENTER CODE TO BEGIN");
+  playStartUpSound();
 }
 
 void showCodeEntryScreen(){
@@ -429,24 +430,22 @@ void setup(){
   tft.fillScreen(TFT_BLACK);
   pinMode(BUZZ_PIN, OUTPUT);
   showStartScreen();
-  playStartUpSound();
 }
 
 void playStartUpSound(){
-  // Play a simple startup jingle using the piezo speaker
-  int melody[] = {262, 330, 392, 523}; // C4, E4, G4, C5 (frequencies in Hz)
-  int durations[] = {100, 100, 100, 400}; // Duration of each note in ms
-  for (int i = 0; i < 4; i++) {
+  const int melody[] = {740, 587}; // F#5, D5 (frequencies in Hz)
+  const int durations[] = {140, 200}; // Duration of each note in ms
+  for (int i = 0; i < 2; i++) {
     tone(BUZZ_PIN, melody[i], durations[i]);
-    delay(durations[i] + 10); // Short pause between notes
+    delay(durations[i] + 10);
   }
   noTone(BUZZ_PIN); // Ensure the buzzer is off after the jingle
 }
 
-void playKeyPressSound(){
-  // digitalWrite(BUZZ_PIN, HIGH); // ON
-  // delay(200);
-  // digitalWrite(BUZZ_PIN, LOW);  // OFF
+void playKeyPressSound() {
+  tone(BUZZ_PIN, 440, 200); // A4 note 200 ms duration
+  delay(200);
+  noTone(BUZZ_PIN);
 }
 
 void loop(){
@@ -462,12 +461,12 @@ void loop(){
         // Set 'timeOfLastInteraction' to current time in ms.
         timeOfLastInteraction = millis();
         if (key == '*'){
-            playKeyPressSound();
             if (currentScreen == "codeEntryScreen"){
               resetVariables();
               showStartScreen();
             }
             else if (currentScreen == "questionScreen"){
+              playKeyPressSound();
               if (readyForNewInput) {
                 readyForNewInput = false;
               }
@@ -496,10 +495,10 @@ void loop(){
                 showQuestionScreen();
               }
               else if (userInput == expectedResponse){
-                playCorrectAnswerSound();
                 setPrimaryText(userInput, TFT_GREEN);
                 setSecondaryText("THAT'S CORRECT!");
                 readyForNextQuestion();
+                playCorrectAnswerSound();
               }
               else if (userInput.length() > 0){
                 playInvalidInputSound();
@@ -541,7 +540,14 @@ void loop(){
 }
 
 void playCorrectAnswerSound(){
-  Serial.println("CORRECT ANSWER");
+  // Play A4, D4, E4, and F#4 in sequence
+  int melody[] = {440, 587, 659, 740}; // A4, D5, E5, F#5
+  int durations[] = {120, 120, 120, 200}; // Duration of each note in ms
+  for (int i = 0; i < 4; i++) {
+    tone(BUZZ_PIN, melody[i], durations[i]);
+    delay(durations[i] + 10); // Short pause between notes
+  }
+  noTone(BUZZ_PIN); // Ensure the buzzer is off after the jingle
 }
 
 void playValidInputSound(){
