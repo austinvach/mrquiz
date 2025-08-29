@@ -1,10 +1,10 @@
-// DISPLAY DIMENSIONS ARE 135 x 240
 #include <ArduinoJson.h>
-// SETUP INSTRUCTIONS https://www.youtube.com/watch?v=f9CnjAR_gBU, https://www.youtube.com/watch?v=b8254--ibmM
 #include <TFT_eSPI.h>
 #include <Keypad.h>
 #include "Codes.h"
 #define USB_POWER 1000 // battery percentage sentinel value to indicate USB power
+#define HAPTIC_PIN 17  // Pin for haptic feedback
+#define PIEZO_PIN 2   // Pin for piezo speaker
 
 TFT_eSPI tft = TFT_eSPI();
 
@@ -19,8 +19,6 @@ JsonDocument filter;
 JsonDocument temp;
 JsonDocument doc;
 JsonArray qaPairs;
-// I need to find a way to preserve geoSafariMode state in durable memory.
-const int BUZZ_PIN    = 17;  // safe, PWM-capable pin
 bool geoSafariMode = false;
 bool pretendSleeping;
 bool secondaryTextVisible;
@@ -41,8 +39,8 @@ int secondaryTextYPosition = 88;
 int footerTextSize = 2;
 int footerTextYPosition = 116;
 int sleepTimer = 60; // Time in seconds before the device goes to sleep
-int32_t displayHeight = tft.width(); // Since we've rotated the screen 1/4 turn the height equals the width and visa versa
-int32_t displayWidth = tft.height();  
+int32_t displayHeight = tft.width();
+int32_t displayWidth = tft.height();
 long int lastBatteryCheck = 0;
 long timeOfLastInteraction = millis();
 const byte rows = 4;
@@ -52,9 +50,14 @@ char keys[rows][cols] = {
     {'4', '5', '6'},
     {'7', '8', '9'},
     {'*', '0', '#'}};
-byte rowPins[rows] = {21, 27, 26, 22}; //connect to the row pinouts of the keypad
-byte colPins[cols] = {33, 32, 25};     //connect to the column pinouts of the keypad
+byte rowPins[rows] = {21, 27, 26, 22};
+byte colPins[cols] = {33, 32, 25};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rows, cols);
+
+// Variables for non-blocking haptic feedback
+unsigned long hapticStartTime = 0;
+bool hapticActive = false;
+const unsigned long HAPTIC_DURATION = 200; // Haptic pulse duration in ms
 
 class QAP {
   public:
@@ -66,7 +69,6 @@ class QAP {
 QAP objects[26];
 
 void updateBatteryStatus(bool force = false){
-  // Serial.println("updateBatteryStatus()");
   if(!force && lastBatteryCheck != 0 && millis() - lastBatteryCheck < 5000) {
     return;
   }
@@ -86,7 +88,6 @@ void updateBatteryStatus(bool force = false){
 }
 
 unsigned int getBatteryPercentage(){
-  // Serial.println("getBatteryPercentage()");
   const float batteryMaxVoltage = 4.2;
   const float batteryMinVoltage = 3.73;
   const float batteryAllowedRange = batteryMaxVoltage - batteryMinVoltage;
@@ -99,7 +100,6 @@ unsigned int getBatteryPercentage(){
 }
 
 void resetVariables(){
-  // Serial.println("resetVariables()");
   code = "";
   secondaryTextVisible = false;
   readyToPlay = false;
@@ -108,12 +108,9 @@ void resetVariables(){
   filter.clear();
 }
 
-bool isCodeValid (){
-  // Serial.println("isCodeValid()");
+bool isCodeValid(){
   filter[String(code)] = true;
-  // Deserialize the JSON document,
   DeserializationError error = deserializeJson(doc, codes, DeserializationOption::Filter(filter));
-  // Test if parsing succeeds.
   if (error) {
     Serial.print(F("deserializeJson() failed: "));
     Serial.println(error.f_str());
@@ -122,31 +119,25 @@ bool isCodeValid (){
   if(qaPairs){
     int numObjects = qaPairs.size();
     for (int i = 0; i < numObjects; i++) {
-      // JsonArray qaPair = qaPairs[i];
       QAP newObj;
       newObj.questionNumber = i + 1;
       newObj.geoSafariNumber = qaPairs[i][0].as<int>();
       newObj.answer = qaPairs[i][1].as<int>();
       objects[i] = newObj;
     }
-    // Shuffle the array of objects
     shuffleQAPairs(objects, numObjects);
     readyToPlay = true;
-    return true;  
+    return true;
   }
   return false;
 }
 
-// Check whether the device should be put to sleep and put it to sleep if it should
-void maybeSleepDevice() {
-  // Serial.println("maybeSleepDevice()");
+void maybeSleepDevice(){
   if(!pretendSleeping) {
     long currentTime = millis();
-    
     if(currentTime > (timeOfLastInteraction + sleepTimer * 1000)) {
       resetVariables();
       sleep();
-      // The device wont charge if it is sleeping, so when charging, do a pretend sleep
       if(isPoweredExternally()) {
         isLilyGoKeyboard();
         pretendSleeping = true;
@@ -154,9 +145,8 @@ void maybeSleepDevice() {
       }
       else {
         if(isLilyGoKeyboard()) {
-          esp_sleep_enable_ext0_wakeup(GPIO_NUM_25,1); //1 = High, 0 = Low
+          esp_sleep_enable_ext0_wakeup(GPIO_NUM_25,1);
         } else {
-          // Configure Touchpad as wakeup source
           touchAttachInterrupt(T3, callback, 40);
           esp_sleep_enable_touchpad_wakeup();
         }
@@ -166,30 +156,24 @@ void maybeSleepDevice() {
   }
 }
 
-void callback(){
-  // Serial.println("callback()");
-}
+void callback(){}
 
 float getInputVoltage(){
-  // Serial.println("getInputVoltage()");
   delay(100);
   const uint16_t v1 = analogRead(34);
   return ((float) v1 / 4095.0f) * 2.0f * 3.3f * (1100.0f / 1000.0f);
 }
-// Does the device have external or internal power?
+
 bool isPoweredExternally(){
-  // Serial.println("isPoweredExternally()");
   float inputVoltage = getInputVoltage();
   if(inputVoltage > 4.5)
   {
     return true;
   }
-  return false; 
+  return false;
 }
 
-// Get the keypad type - CHANGE TO BOOL
 bool isLilyGoKeyboard(){
-  // Serial.println("isLilyGoKeyboard()");
   if(colPins[0] == 33) {
     return true;
   }
@@ -197,28 +181,23 @@ bool isLilyGoKeyboard(){
 }
 
 void clearHeader(){
-  // Serial.println("clearHeader()");
   tft.setTextSize(headerTextSize);
   tft.fillRect(0, headerTextYPosition, 180, tft.fontHeight(), TFT_BLACK);
 }
 
 void setHeaderText(String s){
-  // Serial.println("setHeaderText()");
   clearHeader();
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-  // tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(0, headerTextYPosition);
   tft.print(s);
 }
 
 void clearPrimaryText(){
-  // Serial.println("clearPrimaryText()");
   tft.setTextSize(primaryTextSize);
   tft.fillRect(0, primaryTextYPosition, displayWidth, tft.fontHeight(), TFT_BLACK);
 }
 
 void setPrimaryText(String s, uint16_t c = TFT_BLUE){
-  // Serial.println("setPrimaryText()");
   clearPrimaryText();
   tft.setTextColor(c, TFT_BLACK);
   tft.setCursor(0, primaryTextYPosition);
@@ -226,13 +205,11 @@ void setPrimaryText(String s, uint16_t c = TFT_BLUE){
 }
 
 void clearSecondaryText(){
-  // Serial.println("clearSecondaryText()");
   tft.setTextSize(secondaryTextSize);
   tft.fillRect(0, secondaryTextYPosition, displayWidth, tft.fontHeight(), TFT_BLACK);
 }
 
 void setSecondaryText(String s){
-  // Serial.println("setSecondaryText()");
   clearSecondaryText();
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.setCursor(0, secondaryTextYPosition);
@@ -240,25 +217,20 @@ void setSecondaryText(String s){
 }
 
 void setSecondaryTextWithStarAction(String s){
-  // Serial.println("setSecondaryTextWithStarAction()");
   clearSecondaryText();
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.setCursor(0, secondaryTextYPosition);
   tft.print("PRESS ");
-  // tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.print("* ");
-  // tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
   tft.print("TO " + s);
 }
 
 void clearFooter(){
-  // Serial.println("clearFooter()");
   tft.setTextSize(footerTextSize);
   tft.fillRect(0, footerTextYPosition, displayWidth, tft.fontHeight(), TFT_BLACK);
 }
 
 void setFooterText(String s){
-  // Serial.println("setFooterText()");
   clearFooter();
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(0, footerTextYPosition);
@@ -266,19 +238,15 @@ void setFooterText(String s){
 }
 
 void setFooterTextWithStarAction(String s){
-  // Serial.println("setFooterTextWithStarAction()");
   clearFooter();
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(0, footerTextYPosition);
   tft.print("PRESS ");
-  // tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.print("* ");
-  // tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.print("TO " + s);
 }
 
 void setFooterTextWithPoundAction(String s){
-  // Serial.println("setFooterTextWithPoundAction()");
   clearFooter();
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setCursor(0, footerTextYPosition);
@@ -290,7 +258,6 @@ void setFooterTextWithPoundAction(String s){
 }
 
 void clearAllExceptBattery(){
-  // Serial.println("clearAllExceptBattery()");
   clearHeader();
   clearPrimaryText();
   clearSecondaryText();
@@ -298,7 +265,6 @@ void clearAllExceptBattery(){
 }
 
 void startGame(){
-  // Serial.println("startGame()");
   activeGame = true;
   currentQuestionIndex = 0;
   totalQuestions = qaPairs.size();
@@ -311,7 +277,6 @@ void playQuestionTransitionSound(){
 }
 
 void showQuestionScreen(){
-  // Serial.println("showQuestionScreen()");
   playQuestionTransitionSound();
   if(currentQuestionIndex < totalQuestions){
     attempts = 0;
@@ -326,7 +291,7 @@ void showQuestionScreen(){
       currentQuestion = current.questionNumber;
     }
     expectedResponse = current.answer;
-    setPrimaryText(currentQuestion);  
+    setPrimaryText(currentQuestion);
     setFooterText("KEY IN THE ANSWER");
   }
   else if (currentQuestionIndex == totalQuestions){
@@ -343,7 +308,6 @@ void playEndOfGameSound(){
 }
 
 void sleep(){
-  // Serial.println("sleep()");
   tft.fillScreen(TFT_BLACK);
   tft.setTextSize(5);
   tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
@@ -359,7 +323,6 @@ void sleep(){
 }
 
 void showStartScreen(){
-  // Serial.println("showStartScreen()");
   currentScreen = "startScreen";
   setHeaderText("");
   setPrimaryText("MR.QUIZ");
@@ -374,7 +337,6 @@ void showStartScreen(){
 }
 
 void showCodeEntryScreen(){
-  // Serial.println("showCodeEntryScreen()");
   currentScreen = "codeEntryScreen";
   setHeaderText("CODE");
   setPrimaryText("");
@@ -383,7 +345,6 @@ void showCodeEntryScreen(){
 }
 
 void printCodeToScreen(){
-  // Serial.println("printCodeToScreen()");
   if(code.length() < 4){
     code = code + key;
     setPrimaryText(code, TFT_WHITE);
@@ -403,11 +364,10 @@ void printCodeToScreen(){
       }
       secondaryTextVisible = true;
     }
-  } 
+  }
 }
 
 void printUserInputToScreen(){
-  // Serial.println("printUserInputToScreen()");
   if(userInput.length() == 0){
     setHeaderText("QUESTION " + currentQuestion);
     setSecondaryTextWithStarAction("CLEAR");
@@ -421,144 +381,150 @@ void printUserInputToScreen(){
 
 void setup(){
   Serial.begin(115200);
-  // Serial.println("setup()");
-  keypad.addEventListener(keypadEvent); // Add an event listener for this keypad
+  keypad.addEventListener(keypadEvent);
   tft.init();
-  tft.setRotation(3); // ORIENTATION 1 is readable when oriented with the usb-c to the right or the screen
+  tft.setRotation(1);
   tft.invertDisplay(true);
   updateBatteryStatus(true);
   tft.fillScreen(TFT_BLACK);
-  pinMode(BUZZ_PIN, OUTPUT);
+  pinMode(PIEZO_PIN, OUTPUT);
+  pinMode(HAPTIC_PIN, OUTPUT);
   showStartScreen();
 }
 
 void playStartUpSound(){
-  const int melody[] = {740, 587}; // F#5, D5 (frequencies in Hz)
-  const int durations[] = {140, 200}; // Duration of each note in ms
+  const int melody[] = {740, 587};
+  const int durations[] = {140, 200};
   for (int i = 0; i < 2; i++) {
-    tone(BUZZ_PIN, melody[i], durations[i]);
+    tone(PIEZO_PIN, melody[i], durations[i]);
     delay(durations[i] + 10);
   }
-  noTone(BUZZ_PIN); // Ensure the buzzer is off after the jingle
+  noTone(PIEZO_PIN);
 }
 
-void playKeyPressSound() {
-  tone(BUZZ_PIN, 440, 200); // A4 note 200 ms duration
-  delay(200);
-  noTone(BUZZ_PIN);
+void playKeyPressSound(){
+  tone(PIEZO_PIN, 440); // A4 note, non-blocking
+  triggerHapticResponse();
 }
 
 void loop(){
+  // Manage haptic feedback timing
+  if (hapticActive && millis() - hapticStartTime >= HAPTIC_DURATION) {
+    digitalWrite(HAPTIC_PIN, LOW); // Turn off haptic motor
+    noTone(PIEZO_PIN); // Turn off piezo
+    hapticActive = false;
+  }
+
   // Check if keys have been pressed
   if (keypad.getKeys()){
-    // Scan the whole key list.
-    for (int i=0; i<LIST_MAX; i++){
-      // Find the keys whose state has changed to PRESSED.
+    for (int i = 0; i < LIST_MAX; i++){
       if (keypad.key[i].stateChanged && keypad.key[i].kstate == PRESSED){
-        // Set 'key' variable to the value of the key that was pressed.
         key = keypad.key[i].kchar;
         keyVal = String(key);
-        // Set 'timeOfLastInteraction' to current time in ms.
         timeOfLastInteraction = millis();
         if (key == '*'){
-            if (currentScreen == "codeEntryScreen"){
-              resetVariables();
-              showStartScreen();
-            }
-            else if (currentScreen == "questionScreen"){
-              playKeyPressSound();
-              if (readyForNewInput) {
-                readyForNewInput = false;
-              }
-              if(!readyForNewQuestion){
-                userInput = "";
-                setHeaderText("QUESTION");
-                setPrimaryText(currentQuestion);
-                setSecondaryText("");
-                setFooterText("KEY IN THE ANSWER");
-              }
-            }
-            else if (currentScreen == "endScreen"){
-              resetVariables();
-              clearAllExceptBattery();
-              playTransitionAnimation();
-              showStartScreen();
-            }
+          if (currentScreen == "codeEntryScreen"){
+            resetVariables();
+            showStartScreen();
           }
-          else if (key == '#'){
-            if (currentScreen == "codeEntryScreen" && readyToPlay){
-              startGame();
-            }
-            else if (currentScreen == "questionScreen"){
-              if (readyForNewQuestion) {
-                readyForNewQuestion = false;
-                showQuestionScreen();
-              }
-              else if (userInput == expectedResponse){
-                setPrimaryText(userInput, TFT_GREEN);
-                setSecondaryText("THAT'S CORRECT!");
-                readyForNextQuestion();
-                playCorrectAnswerSound();
-              }
-              else if (userInput.length() > 0){
-                playInvalidInputSound();
-                attempts++;
-                setPrimaryText(userInput, TFT_RED);
-                if (attempts < 3) {
-                  setSecondaryText("TRY AGAIN");
-                  // setFooterToClearText();
-                  setFooterTextWithStarAction("CLEAR");
-                  readyForNewInput = true;
-                  userInput = "";
-                }else{
-                  setSecondaryText("THE ANSWER IS " + expectedResponse);
-                  readyForNextQuestion();
-                }
-              }
-            }
-          }
-          else {
+          else if (currentScreen == "questionScreen"){
             playKeyPressSound();
-            if (currentScreen == "startScreen"){
-              showCodeEntryScreen();
-              printCodeToScreen();
+            if (readyForNewInput) {
+              readyForNewInput = false;
             }
-            else if (currentScreen == "codeEntryScreen"){
-              printCodeToScreen();
+            if(!readyForNewQuestion){
+              userInput = "";
+              setHeaderText("QUESTION");
+              setPrimaryText(currentQuestion);
+              setSecondaryText("");
+              setFooterText("KEY IN THE ANSWER");
             }
-            else if (currentScreen == "questionScreen"){
-              if(!readyForNewQuestion && !readyForNewInput){
-                printUserInputToScreen();
+          }
+          else if (currentScreen == "endScreen"){
+            resetVariables();
+            clearAllExceptBattery();
+            playTransitionAnimation();
+            showStartScreen();
+          }
+        }
+        else if (key == '#'){
+          if (currentScreen == "codeEntryScreen" && readyToPlay){
+            startGame();
+          }
+          else if (currentScreen == "questionScreen"){
+            if (readyForNewQuestion) {
+              readyForNewQuestion = false;
+              showQuestionScreen();
+            }
+            else if (userInput == expectedResponse){
+              setPrimaryText(userInput, TFT_GREEN);
+              setSecondaryText("THAT'S CORRECT!");
+              readyForNextQuestion();
+              playCorrectAnswerSound();
+            }
+            else if (userInput.length() > 0){
+              playInvalidInputSound();
+              attempts++;
+              setPrimaryText(userInput, TFT_RED);
+              if (attempts < 3) {
+                setSecondaryText("TRY AGAIN");
+                setFooterTextWithStarAction("CLEAR");
+                readyForNewInput = true;
+                userInput = "";
+              }else{
+                setSecondaryText("THE ANSWER IS " + expectedResponse);
+                readyForNextQuestion();
               }
             }
           }
+        }
+        else {
+          if (currentScreen == "startScreen"){
+            showCodeEntryScreen();
+            printCodeToScreen();
+            playKeyPressSound();
+          }
+          else if (currentScreen == "codeEntryScreen"){
+            printCodeToScreen();
+            playKeyPressSound();
+          }
+          else if (currentScreen == "questionScreen"){
+            if(!readyForNewQuestion && !readyForNewInput){
+              printUserInputToScreen();
+              playKeyPressSound();
+            }
+          }
+        }
       }
-    }   
+    }
   }
-  // maybeSleepDevice();
   updateBatteryStatus();
 }
 
+void triggerHapticResponse(){
+  digitalWrite(HAPTIC_PIN, HIGH); // Turn on haptic motor
+  hapticStartTime = millis();
+  hapticActive = true;
+}
+
 void playCorrectAnswerSound(){
-  // Play A4, D4, E4, and F#4 in sequence
-  int melody[] = {440, 587, 659, 740}; // A4, D5, E5, F#5
-  int durations[] = {120, 120, 120, 200}; // Duration of each note in ms
+  int melody[] = {440, 587, 659, 740};
+  int durations[] = {120, 120, 120, 200};
   for (int i = 0; i < 4; i++) {
-    tone(BUZZ_PIN, melody[i], durations[i]);
-    delay(durations[i] + 10); // Short pause between notes
+    tone(PIEZO_PIN, melody[i], durations[i]);
+    delay(durations[i] + 10);
   }
-  noTone(BUZZ_PIN); // Ensure the buzzer is off after the jingle
+  noTone(PIEZO_PIN);
 }
 
 void playValidInputSound(){
-   // Play A4, D4, E4, and F#4 in sequence
-  int melody[] = {523, 659}; // C4, E5
-  int durations[] = {120, 200}; // Duration of each note in ms
+  int melody[] = {523, 659};
+  int durations[] = {120, 200};
   for (int i = 0; i < 2; i++) {
-    tone(BUZZ_PIN, melody[i], durations[i]);
-    delay(durations[i] + 10); // Short pause between notes
+    tone(PIEZO_PIN, melody[i], durations[i]);
+    delay(durations[i] + 10);
   }
-  noTone(BUZZ_PIN); // Ensure the buzzer is off after the jingle
+  noTone(PIEZO_PIN);
 }
 
 void playInvalidInputSound(){
@@ -573,7 +539,6 @@ void readyForNextQuestion(){
 }
 
 void playTransitionAnimation(){
-  // Serial.println("playTransitionAnimation()");
   clearAllExceptBattery();
   tft.setTextSize(5);
   tft.setTextColor(TFT_BLUE, TFT_BLACK);
@@ -587,7 +552,6 @@ void playTransitionAnimation(){
 }
 
 void keypadEvent(KeypadEvent key){
-  // Serial.println("keypadEvent()");
   if (keypad.getState() == HOLD && key == '*' && currentScreen != "startScreen"){
     resetVariables();
     playTransitionAnimation();
@@ -598,14 +562,13 @@ void keypadEvent(KeypadEvent key){
     if(geoSafariMode == true){
       setSecondaryText("GEOSAFARI MODE");
     }
-    else {
+    else{
       setSecondaryText("LEARNING COMPANION");
     }
   }
 }
 
-void shuffleQAPairs(QAP objects[], int numObjects) {
-  // Shuffle the array using the Fisher-Yates algorithm
+void shuffleQAPairs(QAP objects[], int numObjects){
   for (int i = numObjects - 1; i > 0; i--) {
     int j = random(i + 1);
     QAP temp = objects[i];
