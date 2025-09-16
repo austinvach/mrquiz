@@ -59,6 +59,45 @@ unsigned long hapticStartTime = 0;
 bool hapticActive = false;
 const unsigned long HAPTIC_DURATION = 200; // Haptic pulse duration in ms
 
+// Variables for non-blocking keypress sound
+unsigned long keySoundStartTime = 0;
+bool keySoundActive = false;
+const unsigned long KEY_SOUND_DURATION = 200; // Keypress sound duration in ms
+
+// Variables for non-blocking valid input sound
+unsigned long validSoundStartTime = 0;
+bool validSoundPending = false;
+
+// Variables for non-blocking invalid input sound
+unsigned long invalidSoundStartTime = 0;
+bool invalidSoundPending = false;
+
+// Variables for non-blocking transition handling
+bool transitionActive = false;
+int animIndex = 0;
+unsigned long animNextStep = 0;
+int soundNoteIndex = 0;
+unsigned long soundNextNote = 0;
+bool soundActive = false;
+const int transitionMelody[] = { 
+  622,  // E5# (F5b)
+  554,  // C5# (D5b)
+  698,  // F5
+  831,  // G5# (A5b)
+  622,  // D5# (E5b)
+  494,  // B4
+  523,  // C5
+  784,  // G5
+  988,  // B5
+  880,  // A5
+  932,  // A5# (B5b)
+  587,  // D5
+  740   // F5# (G5b)
+};
+const unsigned long NOTE_DURATION = 70;  // ms
+const unsigned long SILENCE_DURATION = 10;  // ms
+const unsigned long ANIM_STEP_DURATION = 130;  // ms
+
 class QAP {
   public:
     int questionNumber;
@@ -69,6 +108,9 @@ class QAP {
 QAP objects[26];
 
 void updateBatteryStatus(bool force = false){
+  if (transitionActive) {
+    return; // Skip battery update during animation to avoid cursor interference
+  }
   if(!force && lastBatteryCheck != 0 && millis() - lastBatteryCheck < 5000) {
     return;
   }
@@ -268,311 +310,450 @@ void startGame(){
   activeGame = true;
   currentQuestionIndex = 0;
   totalQuestions = qaPairs.size();
-  playTransitionAnimation();
-  showQuestionScreen();
+  startQuestionTransition();
 }
 
 void playQuestionTransitionSound(){
-  Serial.println("QUESTION TRANSITION");
+  const int melody[] = { 
+    622,  // E5# (F5b)
+    554,  // C5# (D5b)
+    698,  // F5
+    831,  // G5# (A5b)
+    622,  // D5# (E5b)
+    494,  // B4
+    523,  // C5
+    784,  // G5
+  988,  // B5
+  880,  // A5
+  932,  // A5# (B5b)
+  587,  // D5
+  740   // F5# (G5b)
+};
+const int duration = 75; // Duration for all notes in milliseconds
+for (int i = 0; i < 13; i++) {
+  tone(PIEZO_PIN, melody[i], duration);
+  delay(duration + 10);
+}
+noTone(PIEZO_PIN);
+}
+
+void startTransitionSound() {
+soundNoteIndex = 0;
+soundActive = true;
+unsigned long now = millis();
+if (soundNoteIndex < 13) {
+  tone(PIEZO_PIN, transitionMelody[soundNoteIndex], NOTE_DURATION);
+  soundNextNote = now + NOTE_DURATION + SILENCE_DURATION;
+}
 }
 
 void showQuestionScreen(){
-  playQuestionTransitionSound();
-  if(currentQuestionIndex < totalQuestions){
-    attempts = 0;
-    currentScreen = "questionScreen";
-    clearAllExceptBattery();
-    setHeaderText("QUESTION");
-    QAP current = objects[currentQuestionIndex];
-    if(geoSafariMode){
-      currentQuestion = current.geoSafariNumber;
-    }
-    else {
-      currentQuestion = current.questionNumber;
-    }
-    expectedResponse = current.answer;
-    setPrimaryText(currentQuestion);
-    setFooterText("KEY IN THE ANSWER");
+if(currentQuestionIndex < totalQuestions){
+  attempts = 0;
+  currentScreen = "questionScreen";
+  clearAllExceptBattery();
+  setHeaderText("QUESTION");
+  QAP current = objects[currentQuestionIndex];
+  if(geoSafariMode){
+    currentQuestion = current.geoSafariNumber;
   }
-  else if (currentQuestionIndex == totalQuestions){
-    playEndOfGameSound();
-    currentScreen = "endScreen";
-    clearAllExceptBattery();
-    setPrimaryText("THE END");
-    setFooterTextWithStarAction("RESET");
+  else {
+    currentQuestion = current.questionNumber;
   }
+  expectedResponse = current.answer;
+  setPrimaryText(currentQuestion);
+  setFooterText("KEY IN THE ANSWER");
+}
+else if (currentQuestionIndex == totalQuestions){
+  playEndOfGameSound();
+  currentScreen = "endScreen";
+  clearAllExceptBattery();
+  setPrimaryText("THE END");
+  setFooterTextWithStarAction("RESET");
+}
 }
 
 void playEndOfGameSound(){
-  Serial.println("END OF GAME");
+Serial.println("END OF GAME");
 }
 
 void sleep(){
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextSize(5);
-  tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-  tft.setCursor(0, primaryTextYPosition);
-  tft.print("  ");
-  int i = 0;
-  while(i < 4){
-    tft.print("Z");
-    delay(250);
-    i++;
-  }
-  clearPrimaryText();
+tft.fillScreen(TFT_BLACK);
+tft.setTextSize(5);
+tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
+tft.setCursor(0, primaryTextYPosition);
+tft.print("  ");
+int i = 0;
+while(i < 4){
+  tft.print("Z");
+  delay(250);
+  i++;
+}
+clearPrimaryText();
 }
 
 void showStartScreen(){
-  currentScreen = "startScreen";
-  setHeaderText("");
-  setPrimaryText("MR.QUIZ");
+currentScreen = "startScreen";
+setHeaderText("");
+setPrimaryText("MR.QUIZ");
+if(geoSafariMode == true){
+  setSecondaryText("GEOSAFARI MODE");
+}
+else{
+  setSecondaryText("LEARNING TOGETHER");
+}
+setFooterText("ENTER CODE TO BEGIN");
+playStartUpSound();
+}
+
+void showCodeEntryScreen(){
+currentScreen = "codeEntryScreen";
+setHeaderText("CODE");
+setPrimaryText("");
+setSecondaryText("");
+setFooterTextWithStarAction("RESET");
+}
+
+void printCodeToScreen(){
+if(code.length() < 4){
+  code = code + key;
+  setPrimaryText(code, TFT_WHITE);
+}
+if (code.length() == 4 && !secondaryTextVisible){
+  if(isCodeValid()){
+    setPrimaryText(code, TFT_GREEN);
+    setSecondaryText("IS VALID");
+    setFooterTextWithPoundAction("START");
+    validSoundPending = true;
+    validSoundStartTime = millis() + KEY_SOUND_DURATION + 100;
+  }
+  else {
+    noTone(PIEZO_PIN); // Stop any ongoing sound
+    keySoundActive = false; // Reset key sound state
+    setPrimaryText(code, TFT_RED);
+    setSecondaryText("IS INVALID");
+    playInvalidInputSound(); // Play invalid sound immediately
+    secondaryTextVisible = true;
+  }
+  secondaryTextVisible = true;
+}
+}
+
+void printUserInputToScreen(){
+if(userInput.length() == 0){
+  setHeaderText("QUESTION " + currentQuestion);
+  setSecondaryTextWithStarAction("CLEAR");
+  setFooterTextWithPoundAction("SUBMIT");
+}
+if(userInput.length() < 2){
+  userInput = userInput + key;
+  setPrimaryText(userInput, TFT_WHITE);
+}
+}
+
+void setup(){
+Serial.begin(115200);
+keypad.addEventListener(keypadEvent);
+tft.init();
+tft.setRotation(1);
+tft.invertDisplay(true);
+updateBatteryStatus(true);
+tft.fillScreen(TFT_BLACK);
+pinMode(PIEZO_PIN, OUTPUT);
+pinMode(HAPTIC_PIN, OUTPUT);
+showStartScreen();
+}
+
+void playStartUpSound(){
+noTone(PIEZO_PIN); // Stop any ongoing sound
+const int melody[] = {740, 587};
+const int durations[] = {140, 200};
+for (int i = 0; i < 2; i++) {
+  tone(PIEZO_PIN, melody[i], durations[i]);
+  delay(durations[i] + 10);
+}
+noTone(PIEZO_PIN);
+}
+
+void playKeyPressSound() {
+tone(PIEZO_PIN, 440, KEY_SOUND_DURATION); // Play 440 Hz for 200 ms
+keySoundStartTime = millis();
+keySoundActive = true;
+triggerHapticResponse();
+}
+
+void loop(){
+unsigned long now = millis();
+
+// Handle pending valid input sound
+if (validSoundPending && now >= validSoundStartTime) {
+  playValidInputSound();
+  validSoundPending = false;
+}
+
+// Handle pending invalid input sound
+if (invalidSoundPending && now >= invalidSoundStartTime) {
+  playInvalidInputSound();
+  invalidSoundPending = false;
+}
+
+// Non-blocking transition handling
+if (transitionActive) {
+  // Advance animation
+  if (now >= animNextStep) {
+    if (animIndex < 8) {
+      tft.setTextSize(5);
+      tft.setTextColor(TFT_BLUE, TFT_BLACK);
+      tft.print("#");
+      animIndex++;
+      animNextStep = now + ANIM_STEP_DURATION;
+    }
+  }
+
+  // Advance sound
+  if (soundActive && now >= soundNextNote) {
+    soundNoteIndex++;
+    if (soundNoteIndex < 13) {
+      tone(PIEZO_PIN, transitionMelody[soundNoteIndex], NOTE_DURATION);
+      soundNextNote = now + NOTE_DURATION + SILENCE_DURATION;
+    } else {
+      noTone(PIEZO_PIN);
+      soundActive = false;
+    }
+  }
+
+  // Check if both are done
+  if (!soundActive && animIndex >= 8) {
+    transitionActive = false;
+    currentScreen = "questionScreen";
+    attempts = 0;
+    if (currentQuestionIndex < totalQuestions) {
+      QAP current = objects[currentQuestionIndex];
+      if (geoSafariMode) {
+        currentQuestion = current.geoSafariNumber;
+      } else {
+        currentQuestion = current.questionNumber;
+      }
+      expectedResponse = current.answer;
+      clearAllExceptBattery();
+      setHeaderText("QUESTION");
+      setPrimaryText(currentQuestion);
+      setFooterText("KEY IN THE ANSWER");
+    } else if (currentQuestionIndex == totalQuestions) {
+      playEndOfGameSound();
+      currentScreen = "endScreen";
+      clearAllExceptBattery();
+      setPrimaryText("THE END");
+      setFooterTextWithStarAction("RESET");
+    }
+  }
+}
+
+// Manage haptic feedback timing
+if (hapticActive && now - hapticStartTime >= HAPTIC_DURATION) {
+  digitalWrite(HAPTIC_PIN, LOW);
+  hapticActive = false;
+}
+
+// Manage keypress sound timing
+if (keySoundActive && now - keySoundStartTime >= KEY_SOUND_DURATION) {
+  noTone(PIEZO_PIN); // Stop the keypress sound
+  keySoundActive = false;
+}
+
+// Check if keys have been pressed
+if (keypad.getKeys()){
+  for (int i = 0; i < LIST_MAX; i++){
+    if (keypad.key[i].stateChanged && keypad.key[i].kstate == PRESSED){
+      key = keypad.key[i].kchar;
+      keyVal = String(key);
+      timeOfLastInteraction = millis();
+      if (key == '*'){
+        if (currentScreen == "codeEntryScreen"){
+          resetVariables();
+          showStartScreen();
+        }
+        else if (currentScreen == "questionScreen"){
+          playKeyPressSound();
+          if (readyForNewInput) {
+            readyForNewInput = false;
+          }
+          if(!readyForNewQuestion){
+            userInput = "";
+            setHeaderText("QUESTION");
+            setPrimaryText(currentQuestion);
+            setSecondaryText("");
+            setFooterText("KEY IN THE ANSWER");
+          }
+        }
+        else if (currentScreen == "endScreen"){
+          resetVariables();
+          clearAllExceptBattery();
+          playTransitionAnimation();
+          showStartScreen();
+        }
+      }
+      else if (key == '#'){
+        if (currentScreen == "codeEntryScreen" && readyToPlay){
+          startGame();
+        }
+        else if (currentScreen == "questionScreen"){
+          if (readyForNewQuestion) {
+            readyForNewQuestion = false;
+            startQuestionTransition();
+          }
+          else if (userInput == expectedResponse){
+            setPrimaryText(userInput, TFT_GREEN);
+            setSecondaryText("THAT'S CORRECT!");
+            readyForNextQuestion();
+            playCorrectAnswerSound();
+          }
+          else if (userInput.length() > 0){
+            playInvalidInputSound();
+            attempts++;
+            setPrimaryText(userInput, TFT_RED);
+            if (attempts < 3) {
+              setSecondaryText("TRY AGAIN");
+              setFooterTextWithStarAction("CLEAR");
+              readyForNewInput = true;
+              userInput = "";
+            }else{
+              setSecondaryText("THE ANSWER IS " + expectedResponse);
+              readyForNextQuestion();
+            }
+          }
+        }
+      }
+      else {
+        if (currentScreen == "startScreen"){
+          showCodeEntryScreen();
+          printCodeToScreen();
+          playKeyPressSound();
+        }
+        else if (currentScreen == "codeEntryScreen"){
+          String tempCode = code + key; // Temporary code to check length
+          if (tempCode.length() < 4) {
+            printCodeToScreen();
+            playKeyPressSound();
+          } else {
+            // For the 4th digit, check validity before playing keypress sound
+            code = tempCode; // Update code to include new key
+            printCodeToScreen();
+            if (isCodeValid()) {
+              playKeyPressSound(); // Play A4 for valid code
+            } else {
+              // Invalid code: keypress sound is skipped, invalid sound plays in printCodeToScreen
+            }
+          }
+        }
+        else if (currentScreen == "questionScreen"){
+          if(!readyForNewQuestion && !readyForNewInput){
+            printUserInputToScreen();
+            playKeyPressSound();
+          }
+        }
+      }
+    }
+  }
+}
+updateBatteryStatus();
+}
+
+void triggerHapticResponse(){
+digitalWrite(HAPTIC_PIN, HIGH); // Turn on haptic motor
+hapticStartTime = millis();
+hapticActive = true;
+}
+
+void playCorrectAnswerSound(){
+noTone(PIEZO_PIN); // Stop any ongoing sound
+int melody[] = {440, 587, 659, 740};
+int durations[] = {120, 120, 120, 200};
+for (int i = 0; i < 4; i++) {
+  tone(PIEZO_PIN, melody[i], durations[i]);
+  delay(durations[i] + 10);
+}
+noTone(PIEZO_PIN);
+}
+
+void playValidInputSound(){
+noTone(PIEZO_PIN); // Stop any ongoing sound
+int melody[] = {523, 659};
+int durations[] = {120, 200};
+for (int i = 0; i < 2; i++) {
+  tone(PIEZO_PIN, melody[i], durations[i]);
+  delay(durations[i] + 10);
+}
+noTone(PIEZO_PIN);
+}
+
+void playInvalidInputSound() {
+tone(PIEZO_PIN, 220, 200); // Play A3 (220 Hz) for 200 ms
+delay(210); // Wait for note duration plus a small gap
+noTone(PIEZO_PIN); // Stop sound
+}
+
+void readyForNextQuestion(){
+setFooterTextWithPoundAction("CONTINUE");
+readyForNewQuestion = true;
+userInput = "";
+currentQuestionIndex++;
+}
+
+void playTransitionAnimation(){
+clearAllExceptBattery();
+tft.setTextSize(5);
+tft.setTextColor(TFT_BLUE, TFT_BLACK);
+tft.setCursor(0, primaryTextYPosition);
+int i = 0;
+while(i < 8){
+  tft.print("#");
+  delay(40);
+  i++;
+}
+}
+
+void startTransitionAnimation() {
+clearAllExceptBattery();
+tft.setTextSize(5);
+tft.setTextColor(TFT_BLUE, TFT_BLACK);
+tft.setCursor(0, primaryTextYPosition);
+animIndex = 0;
+if (animIndex < 8) {
+  tft.print("#");
+  animIndex++;
+}
+animNextStep = millis() + ANIM_STEP_DURATION;
+}
+
+void startQuestionTransition() {
+startTransitionSound();
+startTransitionAnimation();
+transitionActive = true;
+}
+
+void keypadEvent(KeypadEvent key){
+if (keypad.getState() == HOLD && key == '*' && currentScreen != "startScreen"){
+  resetVariables();
+  playTransitionAnimation();
+  showStartScreen();
+}
+if (keypad.getState() == HOLD && key == '#' && currentScreen == "startScreen"){
+  geoSafariMode = !geoSafariMode;
   if(geoSafariMode == true){
     setSecondaryText("GEOSAFARI MODE");
   }
   else{
-    setSecondaryText("LEARNING TOGETHER");
-  }
-  setFooterText("ENTER CODE TO BEGIN");
-  playStartUpSound();
-}
-
-void showCodeEntryScreen(){
-  currentScreen = "codeEntryScreen";
-  setHeaderText("CODE");
-  setPrimaryText("");
-  setSecondaryText("");
-  setFooterTextWithStarAction("RESET");
-}
-
-void printCodeToScreen(){
-  if(code.length() < 4){
-    code = code + key;
-    setPrimaryText(code, TFT_WHITE);
-  }
-  if (code.length() == 4){
-    if(secondaryTextVisible != true){
-      if(isCodeValid()){
-        setPrimaryText(code, TFT_GREEN);
-        setSecondaryText("IS VALID");
-        setFooterTextWithPoundAction("START");
-        playValidInputSound();
-      }
-      else {
-        setPrimaryText(code, TFT_RED);
-        setSecondaryText("IS INVALID");
-        playInvalidInputSound();
-      }
-      secondaryTextVisible = true;
-    }
+    setSecondaryText("LEARNING COMPANION");
   }
 }
-
-void printUserInputToScreen(){
-  if(userInput.length() == 0){
-    setHeaderText("QUESTION " + currentQuestion);
-    setSecondaryTextWithStarAction("CLEAR");
-    setFooterTextWithPoundAction("SUBMIT");
-  }
-  if(userInput.length() < 2){
-    userInput = userInput + key;
-    setPrimaryText(userInput, TFT_WHITE);
-  }
-}
-
-void setup(){
-  Serial.begin(115200);
-  keypad.addEventListener(keypadEvent);
-  tft.init();
-  tft.setRotation(1);
-  tft.invertDisplay(true);
-  updateBatteryStatus(true);
-  tft.fillScreen(TFT_BLACK);
-  pinMode(PIEZO_PIN, OUTPUT);
-  pinMode(HAPTIC_PIN, OUTPUT);
-  showStartScreen();
-}
-
-void playStartUpSound(){
-  const int melody[] = {740, 587};
-  const int durations[] = {140, 200};
-  for (int i = 0; i < 2; i++) {
-    tone(PIEZO_PIN, melody[i], durations[i]);
-    delay(durations[i] + 10);
-  }
-  noTone(PIEZO_PIN);
-}
-
-void playKeyPressSound(){
-  tone(PIEZO_PIN, 440); // A4 note, non-blocking
-  triggerHapticResponse();
-}
-
-void loop(){
-  // Manage haptic feedback timing
-  if (hapticActive && millis() - hapticStartTime >= HAPTIC_DURATION) {
-    digitalWrite(HAPTIC_PIN, LOW); // Turn off haptic motor
-    noTone(PIEZO_PIN); // Turn off piezo
-    hapticActive = false;
-  }
-
-  // Check if keys have been pressed
-  if (keypad.getKeys()){
-    for (int i = 0; i < LIST_MAX; i++){
-      if (keypad.key[i].stateChanged && keypad.key[i].kstate == PRESSED){
-        key = keypad.key[i].kchar;
-        keyVal = String(key);
-        timeOfLastInteraction = millis();
-        if (key == '*'){
-          if (currentScreen == "codeEntryScreen"){
-            resetVariables();
-            showStartScreen();
-          }
-          else if (currentScreen == "questionScreen"){
-            playKeyPressSound();
-            if (readyForNewInput) {
-              readyForNewInput = false;
-            }
-            if(!readyForNewQuestion){
-              userInput = "";
-              setHeaderText("QUESTION");
-              setPrimaryText(currentQuestion);
-              setSecondaryText("");
-              setFooterText("KEY IN THE ANSWER");
-            }
-          }
-          else if (currentScreen == "endScreen"){
-            resetVariables();
-            clearAllExceptBattery();
-            playTransitionAnimation();
-            showStartScreen();
-          }
-        }
-        else if (key == '#'){
-          if (currentScreen == "codeEntryScreen" && readyToPlay){
-            startGame();
-          }
-          else if (currentScreen == "questionScreen"){
-            if (readyForNewQuestion) {
-              readyForNewQuestion = false;
-              showQuestionScreen();
-            }
-            else if (userInput == expectedResponse){
-              setPrimaryText(userInput, TFT_GREEN);
-              setSecondaryText("THAT'S CORRECT!");
-              readyForNextQuestion();
-              playCorrectAnswerSound();
-            }
-            else if (userInput.length() > 0){
-              playInvalidInputSound();
-              attempts++;
-              setPrimaryText(userInput, TFT_RED);
-              if (attempts < 3) {
-                setSecondaryText("TRY AGAIN");
-                setFooterTextWithStarAction("CLEAR");
-                readyForNewInput = true;
-                userInput = "";
-              }else{
-                setSecondaryText("THE ANSWER IS " + expectedResponse);
-                readyForNextQuestion();
-              }
-            }
-          }
-        }
-        else {
-          if (currentScreen == "startScreen"){
-            showCodeEntryScreen();
-            printCodeToScreen();
-            playKeyPressSound();
-          }
-          else if (currentScreen == "codeEntryScreen"){
-            printCodeToScreen();
-            playKeyPressSound();
-          }
-          else if (currentScreen == "questionScreen"){
-            if(!readyForNewQuestion && !readyForNewInput){
-              printUserInputToScreen();
-              playKeyPressSound();
-            }
-          }
-        }
-      }
-    }
-  }
-  updateBatteryStatus();
-}
-
-void triggerHapticResponse(){
-  digitalWrite(HAPTIC_PIN, HIGH); // Turn on haptic motor
-  hapticStartTime = millis();
-  hapticActive = true;
-}
-
-void playCorrectAnswerSound(){
-  int melody[] = {440, 587, 659, 740};
-  int durations[] = {120, 120, 120, 200};
-  for (int i = 0; i < 4; i++) {
-    tone(PIEZO_PIN, melody[i], durations[i]);
-    delay(durations[i] + 10);
-  }
-  noTone(PIEZO_PIN);
-}
-
-void playValidInputSound(){
-  int melody[] = {523, 659};
-  int durations[] = {120, 200};
-  for (int i = 0; i < 2; i++) {
-    tone(PIEZO_PIN, melody[i], durations[i]);
-    delay(durations[i] + 10);
-  }
-  noTone(PIEZO_PIN);
-}
-
-void playInvalidInputSound(){
-  Serial.println("INVALID INPUT");
-}
-
-void readyForNextQuestion(){
-  setFooterTextWithPoundAction("CONTINUE");
-  readyForNewQuestion = true;
-  userInput = "";
-  currentQuestionIndex++;
-}
-
-void playTransitionAnimation(){
-  clearAllExceptBattery();
-  tft.setTextSize(5);
-  tft.setTextColor(TFT_BLUE, TFT_BLACK);
-  tft.setCursor(0, primaryTextYPosition);
-  int i = 0;
-  while(i < 8){
-    tft.print("#");
-    delay(40);
-    i++;
-  }
-}
-
-void keypadEvent(KeypadEvent key){
-  if (keypad.getState() == HOLD && key == '*' && currentScreen != "startScreen"){
-    resetVariables();
-    playTransitionAnimation();
-    showStartScreen();
-  }
-  if (keypad.getState() == HOLD && key == '#' && currentScreen == "startScreen"){
-    geoSafariMode = !geoSafariMode;
-    if(geoSafariMode == true){
-      setSecondaryText("GEOSAFARI MODE");
-    }
-    else{
-      setSecondaryText("LEARNING COMPANION");
-    }
-  }
 }
 
 void shuffleQAPairs(QAP objects[], int numObjects){
-  for (int i = numObjects - 1; i > 0; i--) {
-    int j = random(i + 1);
-    QAP temp = objects[i];
-    objects[i] = objects[j];
-    objects[j] = temp;
-  }
+for (int i = numObjects - 1; i > 0; i--) {
+  int j = random(i + 1);
+  QAP temp = objects[i];
+  objects[i] = objects[j];
+  objects[j] = temp;
+}
 }
